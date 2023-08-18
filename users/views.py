@@ -12,9 +12,11 @@ from .serializers import BuyerSerializer, SellerSerializer
 class BuyerRegistrationView(APIView):
     def post(self, request):
         serializer = BuyerSerializer(data=request.data)
+
         if serializer.is_valid():
-            user = serializer.save()
-            return Response({'message': 'Buyer registered successfully', 'user_id': user.id}, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response({'message': 'Buyer registered successfully'}, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -24,10 +26,11 @@ class SellerRegistrationView(APIView):
         serializer = SellerSerializer(data=request.data)
         
         if serializer.is_valid():
-            user = serializer.save()
-            return Response({'message': 'Seller registered successfully', 'user_id': user.id}, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response({'message': 'Seller registered successfully'}, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 # 로그인
 class Login(APIView):
@@ -36,7 +39,7 @@ class Login(APIView):
         password = request.data.get('password')
 
         user = authenticate(username=email, password=password)
-        
+
         if user:
             login(request, user)
             return Response({'message': '로그인 성공'}, status=status.HTTP_200_OK)
