@@ -1,10 +1,13 @@
 from django.urls import path
-from .views import BuyerRegistrationView, SellerRegistrationView
+from .views import BuyerRegistrationView, SellerRegistrationView, Login
 
 app_name = 'users'
 
 urlpatterns = [
+    # 구매자 회원가입
     path('buyer/signin/', BuyerRegistrationView.as_view(), name='buyer-signin'),
+    # 판매자 회원가입
     path('seller/signin/', SellerRegistrationView.as_view(), name='seller-signin'),
-    # 다른 URL 패턴들을 여기에 추가할 수 있습니다.
+    # 로그인
+    path('login/', Login.as_view(), name='login'),
 ]
