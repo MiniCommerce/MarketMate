@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.authtoken.models import Token
 from rest_framework.validators import UniqueValidator
@@ -56,3 +56,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         # 토큰 생성
         Token.objects.create(user=user) 
         return user
+    
+    class LoginSerializer(serializers.Serializer):
+        email = serializers.CharField(required=True)
+        password = serializers.CharField(required=True, write_only=True)
+
+        def validate(self, data):
+            user = authenticate(**data)
+            
+            if user:
+                token = Token.objects.get(user=user)
+                return token
+            raise serializers.ValidationError("유효하지 않은 로그인입니다.")

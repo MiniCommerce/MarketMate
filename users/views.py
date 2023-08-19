@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from .serializers import BuyerSerializer, SellerSerializer
+from .serializers import BuyerSerializer, SellerSerializer, LoginSerializer
 
 
 # 판매자 회원가입
@@ -45,3 +45,14 @@ class Login(APIView):
             return Response({'message': '로그인 성공'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': '이메일 또는 비밀번호가 잘못되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+# 로그인(토큰)
+class LoginAPI(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+
+        token = serializer.validated_data
+        return Response({
+            'token': token.key,
+        }, status=status.HTTP_200_OK)
