@@ -37,6 +37,7 @@ class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, max_length=255)
     name = models.CharField(max_length=50, null=True, blank=True)
+    number = models.CharField(max_length=20, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -52,13 +53,15 @@ class User(AbstractUser):
 
 class Buyer(User):
     nickname = models.CharField(max_length=20, null=False, blank=True)
-
+    shipping_address = models.CharField(max_length=50, null=False, blank=True)
+    
     def __str__(self):
         return self.nickname
 
 
 class Seller(User):
     store_name = models.CharField(max_length=20, null=False, blank=True)
+    shipping_place = models.CharField(max_length=50, null=False, blank=True)
 
     def __str__(self):
         return self.store_name
