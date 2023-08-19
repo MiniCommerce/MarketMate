@@ -1,8 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from rest_framework.authtoken.models import Token
+from rest_framework.validators import UniqueValidator
 
 from .models import Buyer, Seller
 
+User = get_user_model()
 
 class BuyerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,4 +27,32 @@ class SellerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = Seller.objects.create_user(**validated_data)
+        return user
+    
+
+# 임시 참고용
+class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = '__all__'
+    
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({'password': '비밀번호가 일치하지 않습니다.'})
+        return attrs
+    
+    def create(self, validated_data):
+        user = User.objects.create(
+            email = validated_data['email'],
+            password = validated_data['password'],
+        )
+        # 토큰 생성
+        Token.objects.create(user=user) 
         return user
