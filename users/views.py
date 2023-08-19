@@ -8,7 +8,7 @@ from rest_framework import status
 from .serializers import BuyerSerializer, SellerSerializer
 
 
-# 구매자 회원 가입
+# 판매자 회원가입
 class BuyerRegistrationView(APIView):
     def post(self, request):
         serializer = BuyerSerializer(data=request.data)
@@ -20,7 +20,7 @@ class BuyerRegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# 판매자 회원 가입
+# 구매자 회원가입
 class SellerRegistrationView(APIView):
     def post(self, request):
         serializer = SellerSerializer(data=request.data)
