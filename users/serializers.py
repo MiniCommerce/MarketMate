@@ -6,18 +6,21 @@ from .models import Buyer, Seller
 
 class BuyerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = get_user_model()
-        fields = ['email', 'password']
-    
+        model = Buyer
+        fields = ['email', 'password', 'nickname']  
+        extra_kwargs = {'password': {'write_only': True}}
+
     def create(self, validated_data):
-        user = get_user_model().objects.create_user(**validated_data)
+        user = Buyer.objects.create_user(**validated_data)
         return user
+
 
 class SellerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = get_user_model()
-        fields = ['email', 'password']
+        model = Seller
+        fields = ['email', 'password', 'store_name'] 
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = get_user_model().objects.create_user(**validated_data)
+        user = Seller.objects.create_user(**validated_data)
         return user
