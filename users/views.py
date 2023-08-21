@@ -66,7 +66,8 @@ class LoginAPI(APIView):
 
 class BuyerProfile(APIView):
     def get(self, request):
-        token = Token.objects.get(key=request.data.get('token'))
+        token = Token.objects.get(key=request.auth)
+        # token = Token.objects.get(key=request.headers.get('Authorization').split(' ')[1])
         user = get_object_or_404(Buyer, pk=token.user_id)
 
         res = Response(

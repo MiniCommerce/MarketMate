@@ -14,7 +14,7 @@ from .serializers import CartSerializer
 # Create your views here.
 class CartView(APIView):
     def get(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.data.get('token')).user_id)
+        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
         cart_list = Cart.objects.filter(user=user)
 
         if cart_list:
@@ -24,7 +24,7 @@ class CartView(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.data.get('token')).user_id)
+        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
         product = Product.objects.get(pk=request.data.get('product_id'))
 
         if user and product:
@@ -42,7 +42,7 @@ class CartView(APIView):
         return Response({"status": status.HTTP_401_UNAUTHORIZED})
 
     def patch(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.data.get('token')).user_id)
+        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
         cart = Cart.objects.get(pk=request.data.get('cart_id'))
 
         if user.pk == cart.user_id:
@@ -57,7 +57,7 @@ class CartView(APIView):
         return Response({"status": status.HTTP_401_UNAUTHORIZED})
     
     def delete(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.data.get('token')).user_id)
+        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
         cart = Cart.objects.get(pk=request.data.get('cart_id'))
 
         if user.pk == cart.user_id:
