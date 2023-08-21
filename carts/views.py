@@ -12,7 +12,7 @@ from .serializers import CartSerializer
 class CartView(APIView):
     def get(self, request):
         cart = Cart.objects.filter(user=request.user)
-        
+
         if not cart:
             return Response({"message": "장바구니가 비었습니다."}, status=status.HTTP_404_NOT_FOUND)
         
@@ -21,7 +21,7 @@ class CartView(APIView):
         if serializer:
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response({"message": "오류가 발생했습니다."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"status": status.HTTP_404_NOT_FOUND})
 
     def post(self, request):
         serializer = CartSerializer(data=request.data)
@@ -30,7 +30,7 @@ class CartView(APIView):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response({"message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": status.HTTP_400_BAD_REQUEST})
 
     def patch(self, request):
         cart = Cart.objects.filter(user=request.user, id=request.data["cart_id"]).first()
@@ -40,4 +40,11 @@ class CartView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response({"message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": status.HTTP_400_BAD_REQUEST})
+    
+    def delete(self, request):
+        cart = Cart.objects.filter(user=request.user, id=request.data["cart_id"]).first()
+
+        cart.delete()
+
+        return Response({"status": status.HTTP_200_OK})
