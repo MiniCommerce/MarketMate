@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Product, Review
 from .serializers import ReviewSerializer
@@ -30,6 +31,8 @@ class ReviewList(APIView):
 
 
 class ReviewDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     #  상품 후기 수정
     def patch(self, request, review_id):
         try:
@@ -37,6 +40,9 @@ class ReviewDetail(APIView):
         except Review.DoesNotExist:
 
             return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        if review.user != request.user:
+            return Response({'error': '이 리뷰를 수정할 수 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
         
         serializer = ReviewSerializer(review, data=request.data)
 
@@ -54,6 +60,8 @@ class ReviewDetail(APIView):
 
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        review.delete()
+        if review.user != request.user:
+            return Response({'error': '이 리뷰를 삭제할 수 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
 
+        review.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
