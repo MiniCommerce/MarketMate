@@ -1,9 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
+from users.models import Buyer
+from products.models import Product
 from .models import Cart
 from .serializers import CartSerializer
 
@@ -11,40 +14,54 @@ from .serializers import CartSerializer
 # Create your views here.
 class CartView(APIView):
     def get(self, request):
-        cart = Cart.objects.filter(user=request.user)
+        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.data.get('token')).user_id)
+        cart_list = Cart.objects.filter(user=user)
 
-        if not cart:
-            return Response({"message": "장바구니가 비었습니다."}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = CartSerializer(cart, many=True)
-
-        if serializer:
+        if cart_list:
+            serializer = CartSerializer(cart_list, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response({"status": status.HTTP_404_NOT_FOUND})
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
-        serializer = CartSerializer(data=request.data)
+        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.data.get('token')).user_id)
+        product = Product.objects.get(pk=request.data.get('product_id'))
 
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if user and product:
+            request_data = request.data.copy()
+            request_data['user'] = user.pk
+            request_data['product'] = product.pk
+            serializer = CartSerializer(data=request_data)
 
-        return Response({"status": status.HTTP_400_BAD_REQUEST})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"status": status.HTTP_401_UNAUTHORIZED})
 
     def patch(self, request):
-        cart = Cart.objects.filter(user=request.user, id=request.data["cart_id"]).first()
-        serializer = CartSerializer(cart, data={"amount": request.data["amount"]}, partial=True)
+        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.data.get('token')).user_id)
+        cart = Cart.objects.get(pk=request.data.get('cart_id'))
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        if user.pk == cart.user_id:
+            serializer = CartSerializer(cart, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({"status": status.HTTP_400_BAD_REQUEST})
+        return Response({"status": status.HTTP_401_UNAUTHORIZED})
     
     def delete(self, request):
-        cart = Cart.objects.filter(user=request.user, id=request.data["cart_id"]).first()
+        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.data.get('token')).user_id)
+        cart = Cart.objects.get(pk=request.data.get('cart_id'))
 
-        cart.delete()
+        if user.pk == cart.user_id:
+            cart.delete()
+            return Response({"status": status.HTTP_200_OK})
 
-        return Response({"status": status.HTTP_200_OK})
+        return Response({"status": status.HTTP_401_UNAUTHORIZED})
