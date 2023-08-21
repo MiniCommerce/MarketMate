@@ -36,7 +36,7 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, data):
         user = authenticate(**data)
         
-        if user:
+        if user and user.is_active:
             # 토큰 생성
             token, created = Token.objects.get_or_create(user=user)
             return token
