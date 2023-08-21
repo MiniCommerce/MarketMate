@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 from .serializers import BuyerSerializer, SellerSerializer, LoginSerializer
 
@@ -33,26 +34,28 @@ class SellerRegistrationView(APIView):
 
 
 # 로그인
-class Login(APIView):
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        user = authenticate(username=email, password=password)
-
-        if user:
-            login(request, user)
-            return Response({'message': '로그인 성공'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': '이메일 또는 비밀번호가 잘못되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-# 로그인(토큰)
-class LoginAPI(APIView):
+class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
 
-        token = serializer.validated_data
-        return Response({
-            'token': token.key,
-        }, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            token = serializer.validated_data
+            
+            return Response({
+                'token': token.key,
+            }, status=status.HTTP_200_OK)
+        
+        return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+# 로그아웃
+class LogoutView(APIView):
+    def get(self, request):
+        user = request.user
+        
+        try:
+            Token.objects.get(user_id=user.id).delete()
+        except Token.DoesNotExist:
+            return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response(status=status.HTTP_200_OK)
