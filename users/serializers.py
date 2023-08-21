@@ -41,27 +41,3 @@ class LoginSerializer(serializers.Serializer):
             token, created = Token.objects.get_or_create(user=user)
             return token
         raise serializers.ValidationError("유효하지 않은 로그인입니다.")
-    
-
-
-class BuyerUpdateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Buyer
-        fields = ['nickname', 'number', 'shipping_address']  
-
-
-class SellerUpdateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Seller
-        fields = ['store_name', 'number', 'shipping_place']  
-
-
-class ChangePasswordSerializer(serializers.Serializer):
-    current_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True)
-    
-    def validate_new_password(self, value):
-        validate_password(value)
-        return value
