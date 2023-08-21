@@ -12,7 +12,6 @@ from .serializers import ReviewSerializer
 class ReviewList(APIView):
     # 상품 후기 리스트
     def get(self, request, product_id):
-        # product = get_object_or_404(Product, id=product_id)
         reviews = Review.objects.filter(product=product_id)
         serializer = ReviewSerializer(reviews, many=True)
 
