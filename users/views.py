@@ -5,10 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
-from .serializers import BuyerSerializer, SellerSerializer, LoginSerializer, ChangePasswordSerializer, BuyerUpdateSerializer, SellerUpdateSerializer
+from .serializers import BuyerSerializer, SellerSerializer, LoginSerializer, ChangePasswordSerializer, BuyerUpdateSerializer, SellerUpdateSerializer, DeleteUserSerializer
+from users.permissions import IsAuthenticated
 
 
 # 판매자 회원가입
@@ -52,6 +52,8 @@ class LoginView(APIView):
 
 # 로그아웃
 class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         user = request.user
         
@@ -125,3 +127,25 @@ class SellerUpdateView(APIView):
             return Response(serializer.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# 회원탈퇴
+class DeleteUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        serializer = DeleteUserSerializer(data=request.data)
+
+        if serializer.is_valid():
+            password = serializer.validated_data.get('password')
+            if user.check_password(password):
+                try:
+                    Token.objects.get(user_id=user.id).delete()
+                    user.is_active = False
+                    user.save()
+                    return Response(status=status.HTTP_200_OK)
+                except Token.DoesNotExist:
+                    return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)

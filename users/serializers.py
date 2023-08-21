@@ -64,3 +64,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_new_password(self, value):
         validate_password(value)
         return value
+
+
+class DeleteUserSerializer(serializers.Serializer):
+    password = serializers.CharField(required=True, write_only=True)
