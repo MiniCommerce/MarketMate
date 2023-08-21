@@ -57,14 +57,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         Token.objects.create(user=user) 
         return user
     
-    class LoginSerializer(serializers.Serializer):
-        email = serializers.CharField(required=True)
-        password = serializers.CharField(required=True, write_only=True)
+class LoginSerializer(serializers.Serializer):
+    email = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
 
-        def validate(self, data):
-            user = authenticate(**data)
-            
-            if user:
-                token = Token.objects.get(user=user)
-                return token
-            raise serializers.ValidationError("유효하지 않은 로그인입니다.")
+    def validate(self, data):
+        user = authenticate(**data)
+        
+        if user:
+            token = Token.objects.get(user=user)
+            return token
+        raise serializers.ValidationError("유효하지 않은 로그인입니다.")

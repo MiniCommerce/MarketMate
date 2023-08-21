@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from .serializers import BuyerSerializer, SellerSerializer, LoginSerializer
-from .models import User
+from .models import User, Buyer
 
 
 # 판매자 회원가입
@@ -57,7 +57,23 @@ class LoginAPI(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
 
-        token = serializer.validated_data
-        return Response({
-            'token': token.key,
-        }, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            token = serializer.validated_data
+            return Response({
+                'token': token.key,
+            }, status=status.HTTP_200_OK)
+
+
+class BuyerProfile(APIView):
+    def get(self, request):
+        token = Token.objects.get(key=request.data.get('token'))
+        user = get_object_or_404(Buyer, pk=token.user_id)
+
+        res = Response(
+            {
+                'email': user.email,
+                'nickname': user.nickname
+            }
+        )
+
+        return res

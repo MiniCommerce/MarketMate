@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BuyerRegistrationView, SellerRegistrationView, Login
+from .views import BuyerRegistrationView, SellerRegistrationView, LoginAPI, BuyerProfile
 
 app_name = 'users'
 
@@ -9,5 +9,6 @@ urlpatterns = [
     # 판매자 회원가입
     path('seller/signin/', SellerRegistrationView.as_view(), name='seller-signin'),
     # 로그인
-    path('login/', Login.as_view(), name='login'),
+    path('login/', LoginAPI.as_view(), name='login'),
+    path('buyer/profile/', BuyerProfile.as_view()),
 ]
