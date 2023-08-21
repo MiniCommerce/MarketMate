@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import get_object_or_404
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -33,7 +33,7 @@ class ReviewDetail(APIView):
     #  상품 후기 수정
     def patch(self, request, review_id):
         try:
-            review = Review.objects.get(pk=review_id)
+            review = Review.objects.get(id=review_id)
         except Review.DoesNotExist:
 
             return Response(status=status.HTTP_404_NOT_FOUND)
