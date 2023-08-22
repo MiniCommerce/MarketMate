@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Review
 from .serializers import ReviewSerializer
+from products.models import Product
 
 
 class ReviewList(APIView):

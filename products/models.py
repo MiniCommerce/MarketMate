@@ -1,12 +1,10 @@
-from django.db import models
-from django.contrib.auth import get_user_model
-
 import os
 import uuid
 
+from django.db import models
 
-# Create your models here.
-User = get_user_model()
+from users.models import Seller
+
 
 def image_path(instance, filename):
     filename = str(uuid.uui4())
@@ -18,7 +16,7 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    seller = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, verbose_name="판매자")
+    seller = models.ForeignKey(Seller, blank=False, null=False, on_delete=models.CASCADE, verbose_name="판매자")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="카테고리")
     product_name = models.CharField(blank=False, null=False, max_length=200, verbose_name="상품명")
     price = models.IntegerField(blank=False, null=False, verbose_name="가격")

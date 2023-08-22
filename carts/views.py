@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from users.models import Buyer
-from products.model import Product
+from products.models import Product
 from .models import Cart
 from .serializers import CartSerializer
 
