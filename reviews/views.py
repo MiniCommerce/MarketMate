@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Product, Review
+from .models import Review
 from .serializers import ReviewSerializer
 
 

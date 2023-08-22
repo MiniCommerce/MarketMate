@@ -43,8 +43,8 @@ INSTALLED_APPS = [
     'rest_auth',
 
     'main',
-    'users'
-    'reveiws',
+    'users',
+    'reviews',
     'carts',
 ]
 
