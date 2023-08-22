@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     'rest_auth',
 
     'main',
+    'users'
+    'reveiws',
+    'carts',
     'products',
 ]
 
