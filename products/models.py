@@ -12,7 +12,7 @@ def image_path(instance, filename):
 
 
 class Category(models.Model):
-    name = models.CharField(blank=False, null=False, verbose_name='카테고리명')
+    name = models.CharField(max_length=20, blank=False, null=False, verbose_name='카테고리명')
 
 
 class Product(models.Model):

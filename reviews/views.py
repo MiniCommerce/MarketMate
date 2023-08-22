@@ -1,14 +1,13 @@
-from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 
 from .models import Review
 from .serializers import ReviewSerializer
 from products.models import Product
+from users.permissions import IsAuthenticated
 
 
 class ReviewList(APIView):
@@ -25,9 +24,9 @@ class ReviewList(APIView):
         serializer = ReviewSerializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.save(product=product, user=request.user)
-            
+            serializer.save(product=product, user=request.user.buyer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -39,7 +38,6 @@ class ReviewDetail(APIView):
         try:
             review = Review.objects.get(id=review_id)
         except Review.DoesNotExist:
-
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if review.user != request.user:
@@ -49,8 +47,8 @@ class ReviewDetail(APIView):
 
         if serializer.is_valid():
             serializer.save()
-
             return Response(serializer.data)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     #  상품 후기 삭제
@@ -58,11 +56,11 @@ class ReviewDetail(APIView):
         try:
             review = Review.objects.get(id=review_id)
         except Review.DoesNotExist:
-
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if review.user != request.user:
             return Response({'error': '이 리뷰를 삭제할 수 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
 
         review.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
