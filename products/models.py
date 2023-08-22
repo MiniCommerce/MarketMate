@@ -7,8 +7,8 @@ from users.models import Seller
 
 
 def image_path(instance, filename):
-    filename = str(uuid.uui4())
-    return os.path.join(f"product_image/{instance.title}", filename)
+    filename = str(uuid.uuid4())
+    return os.path.join(f"media/{instance.product.product_name}", filename)
 
 
 class Category(models.Model):

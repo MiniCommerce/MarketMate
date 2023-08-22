@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from users.models import Buyer, Seller, User
-from .models import Product
+from .models import Product, Category
 from .serializers import ProductSerializer
 
 
@@ -30,8 +30,11 @@ class ProductList(APIView):
         seller =  get_object_or_404(Seller, pk=Token.objects.get(key=request.auth).user_id)
 
         if seller:
+            category_name = request.data.pop('category')
+            category, created = Category.objects.get_or_create(name=category_name)
             request_data = request.data.copy()
             request_data['seller'] = seller.pk
+            request_data['category'] = category.pk
             serializer = ProductSerializer(data=request_data)
 
             if serializer.is_valid():        
