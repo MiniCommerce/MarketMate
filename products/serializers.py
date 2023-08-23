@@ -33,5 +33,19 @@ class ProductSerializer(serializers.ModelSerializer):
             ProductImage.objects.create(product=product, image=image)
 
         return product
+    
+    def update(self, instance, validated_data):
+        uploaded_images = validated_data.pop('uploaded_images')
+        change_name = validated_data.get('product_name', None)
+        
+        if change_name:
+            instance.product_name = change_name
+        # 이전 이미지 삭제
+        instance.images.all().delete()
+        # 새로 이미지 등록
+        for image in uploaded_images:
+            ProductImage.objects.create(product=instance, image=image)
+
+        return super().update(instance, validated_data)
 
 
