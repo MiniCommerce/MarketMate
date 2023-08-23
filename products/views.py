@@ -6,7 +6,7 @@ from rest_framework import status
 
 from .models import Product, Category
 from .serializers import ProductSerializer
-
+from users.permissions import IsAuthenticated
 
 class ProductList(APIView):
     # 상품 전체 리스트 조회
@@ -19,7 +19,11 @@ class ProductList(APIView):
         
         return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
     
-    # 상품 등록
+
+# 상품 등록
+class ProductCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
         seller =  request.user.seller
 
@@ -35,8 +39,8 @@ class ProductList(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
 
 class ProductDetail(APIView):
     # 상품 상세 정보
