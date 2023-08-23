@@ -8,10 +8,23 @@ from .models import Product, Category
 from .serializers import ProductSerializer
 from users.permissions import IsAuthenticated
 
+
+# 상품 조회
 class ProductList(APIView):
-    # 상품 전체 리스트 조회
     def get(self, request):
-        products = Product.objects.all()
+        category_id = request.data.get('category')
+        search_text = request.data.get('search_text')
+        products = None
+
+        # 카테고리 검색
+        if category_id:
+            products = Product.objects.filter(category=category_id)
+        # 텍스트를 통한 검색
+        elif search_text:
+            products = Product.objects.filter(product_name__icontains=search_text)
+        # 전체 리스트
+        else:
+            products = Product.objects.exclude(status='StopSelling')
 
         if products:
             serializer = ProductSerializer(products, many=True)
