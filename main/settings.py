@@ -42,11 +42,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_auth',
 
+    'iamport',
+
     'main',
     'users',
     'reviews',
     'carts',
     'products',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -144,3 +147,9 @@ REST_FRAMEWORK = {
 
 # Auth user
 AUTH_USER_MODEL = 'users.User'
+
+IAMPORT_CODE = config('IAMPORT_CODE', default=None)
+IAMPORT_KEY = config('MY_IAMPORT_KEY', default=None)  # rest api key
+IAMPORT_SECRET = config('MY_IAMPORT_SECRET', default=None)  # rest api secret
+
+IAMPORT_TEST_MODE = True
