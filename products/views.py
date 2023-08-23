@@ -10,7 +10,6 @@ from .models import Product, Category
 from .serializers import ProductSerializer
 
 
-# Create your views here.
 class ProductList(APIView):
     # 상품 리스트 조회
     def get(self, request):
@@ -27,7 +26,7 @@ class ProductList(APIView):
     
     # 상품 등록
     def post(self, request):
-        seller =  get_object_or_404(Seller, pk=Token.objects.get(key=request.auth).user_id)
+        seller =  request.user.seller
 
         if seller:
             category_name = request.data.pop('category')
@@ -43,7 +42,6 @@ class ProductList(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
-
 
 class ProductDetail(APIView):
     # 상품 상세 정보
