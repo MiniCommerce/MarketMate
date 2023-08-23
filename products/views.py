@@ -3,15 +3,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.authtoken.models import Token
 
-from users.models import Buyer, Seller, User
 from .models import Product, Category
 from .serializers import ProductSerializer
 
 
 class ProductList(APIView):
-    # 상품 리스트 조회
+    # 상품 전체 리스트 조회
     def get(self, request):
         products = Product.objects.all()
 
@@ -19,10 +17,7 @@ class ProductList(APIView):
             serializer = ProductSerializer(products, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        elif not products:
-            return Response("등록된 상품이 없습니다.")
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
     
     # 상품 등록
     def post(self, request):
@@ -46,24 +41,25 @@ class ProductList(APIView):
 class ProductDetail(APIView):
     # 상품 상세 정보
     def get(self, request):
-        product = Product.objects.get(pk=request.data.get('product_id'))
+        product_id = request.data.get('product_id')
+        product = get_object_or_404(Product, pk=product_id)
         serializer = ProductSerializer(product)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
         
     # 상품 수정
     def patch(self, request):
-        seller = get_object_or_404(Seller, pk=Token.objects.get(key=request.auth).user_id)
-        product = Product.objects.get(pk=request.data.get('product_id'))
+        seller = request.user.seller
+        product_id = request.data.get('product_id')
+        product = get_object_or_404(Product, pk=product_id)
 
         if seller.pk != product.seller_id:
-            return Response({'error': '상품 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'message': '상품 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
         
-        elif seller.pk == product.seller_id:
-            serializer = ProductSerializer(product, data=request.data, partial=True)
+        serializer = ProductSerializer(product, data=request.data, partial=True)
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
