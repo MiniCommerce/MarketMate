@@ -38,7 +38,10 @@ class CreateQuestion(APIView):
                 request_data['user'] = buyer.pk
             # 판매자 답변
             elif "parent" in request_data:
-                request_data['user'] = seller.pk
+                if product.seller_id == seller.pk:
+                    request_data['user'] = seller.pk 
+                else:
+                    return Response({'error': '상품 판매자만 답변할 수 있습니다.'}, status=status.HTTP_403_FORBIDDEN)
                 
             request_data['product'] = product.pk
             serializer = QuestionSerializer(data=request_data)
@@ -85,7 +88,7 @@ class QuestionDetail(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if user.pk != question.user_id:
-            return Response({'error': '이 문의를 삭제할 수 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': '삭제 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
 
         question.delete()
 
