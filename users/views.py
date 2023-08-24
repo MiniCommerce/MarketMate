@@ -1,6 +1,3 @@
-from django.utils import timezone
-from django.contrib.auth import authenticate, login, logout
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -8,7 +5,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
 
 from .serializers import BuyerSerializer, SellerSerializer, LoginSerializer, ChangePasswordSerializer, BuyerUpdateSerializer, SellerUpdateSerializer, DeleteUserSerializer
-from users.permissions import IsAuthenticated
+from users.permissions import IsAuthenticated, IsBuyer, IsSeller
 
 
 # 판매자 회원가입
@@ -42,10 +39,7 @@ class LoginView(APIView):
 
         if serializer.is_valid():
             token = serializer.validated_data
-            
-            return Response({
-                'token': token.key,
-            }, status=status.HTTP_200_OK)
+            return Response({'token': token.key}, status=status.HTTP_200_OK)
         
         return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -72,6 +66,7 @@ class ChangePasswordView(APIView):
     
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
+
         if serializer.is_valid():
             user = request.user
             current_password = serializer.validated_data.get('current_password')
@@ -90,7 +85,7 @@ class ChangePasswordView(APIView):
 # 구매자 회원정보 수정
 class BuyerUpdateView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsBuyer]
 
     def get(self, request):
         buyer = request.user.buyer
@@ -101,6 +96,7 @@ class BuyerUpdateView(APIView):
     def put(self, request):
         buyer = request.user.buyer
         serializer = BuyerUpdateSerializer(buyer, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -111,7 +107,7 @@ class BuyerUpdateView(APIView):
 # 판매자 회원정보수정
 class SellerUpdateView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSeller]
 
     def get(self, request):
         seller = request.user.seller
@@ -122,6 +118,7 @@ class SellerUpdateView(APIView):
     def put(self, request):
         seller = request.user.seller
         serializer = SellerUpdateSerializer(seller, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -139,6 +136,7 @@ class DeleteUserView(APIView):
 
         if serializer.is_valid():
             password = serializer.validated_data.get('password')
+            
             if user.check_password(password):
                 try:
                     Token.objects.get(user_id=user.id).delete()

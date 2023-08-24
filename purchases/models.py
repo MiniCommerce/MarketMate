@@ -19,7 +19,7 @@ class Order(models.Model):
 class Purchase(models.Model):
     order = models.ForeignKey(Order, blank=False, null=False, on_delete=models.CASCADE, verbose_name="주문")
     buyer = models.ForeignKey(Buyer, blank=False, null=False, on_delete=models.CASCADE, verbose_name="구매자")
-    imp_uid = models.CharField(max_length=320, blank=False, null=False, verbose_name="결제번호")
+    imp_uid = models.CharField(max_length=320, blank=True, null=True, verbose_name="결제번호")
     merchant_uid = models.CharField(max_length=320, blank=False, null=False, verbose_name="주문번호")
     purchase_type = models.CharField(max_length=20, verbose_name="결제 수단")
     status = models.CharField(max_length=20, verbose_name="결제 진행 상태")
