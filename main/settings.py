@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_auth',
 
     'iamport',
+    'corsheaders',
 
     'main',
     'users',
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -153,3 +155,5 @@ IAMPORT_KEY = config('MY_IAMPORT_KEY', default=None)  # rest api key
 IAMPORT_SECRET = config('MY_IAMPORT_SECRET', default=None)  # rest api secret
 
 IAMPORT_TEST_MODE = True
+
+CORS_ALLOW_ALL_ORIGINS = True

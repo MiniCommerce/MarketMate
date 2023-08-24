@@ -1,34 +1,49 @@
-from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.contrib.auth.models import User
 
-from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework import status
 
-from .models import PaymentResult
-from .serializers import PaymentResultSerializer
-from users.models import Buyer
-from users.permissions import IsAuthenticated
-
+from .models import PaymentResult,Buyer
 from iamport import Iamport
 
-class PaymentRequestView(APIView):
+
+
+class PaymentInfoView(APIView):
     def post(self, request):
         iamport = Iamport(
-            code=settings.IAMPORT_CODE,
-            api_key=settings.IAMPORT_API_KEY,
-            api_secret=settings.IAMPORT_API_SECRET,
+            imp_key=settings.IAMPORT_KEY,
+            imp_secret=settings.IAMPORT_SECRET
         )
         
+        merchant_uid = request.data.get("merchant_uid")
+        if not merchant_uid:
+            return Response({"error": "merchant_uid is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
         try:
-            response = iamport.payment(
-                merchant_uid="unique_merchant_uid",
-                amount=100,
-                name="Sample Product",
-                buyer_email="buyer@example.com",
-                buyer_name="Buyer Name",
-                buyer_tel="010-1234-5678",
+            user = request.user
+            if not user.is_authenticated:
+                return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # 이메일 값을 사용하여 Buyer 객체 조회
+            buyer = Buyer.objects.get(email=user.email)
+            print(buyer)
+            response = iamport.find(merchant_uid=merchant_uid)
+            print(response)
+            imp_uid = response.get("imp_uid")
+            merchant_uid = response.get("merchant_uid")
+            amount = response.get("amount")
+            payment_status = response.get("status")  
+            
+            # 추출한 정보를 DB에 저장
+            PaymentResult.objects.create(
+                buyer=buyer,
+                imp_uid=imp_uid,
+                merchant_uid=merchant_uid,
+                amount=amount,
+                status=payment_status,  
             )
-            return Response({"redirect_url": response['redirect_url']}, status=status.HTTP_200_OK)
-        except Iamport.ResponseErrorr as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Payment data saved successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
