@@ -8,10 +8,10 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ('product', 'id', 'user', 'desc', 'parent', 'created_at', 'answer')
-        # fields = '__all__'
+        fields = '__all__'
 
     def get_answer(self, instance):
-        serializer = self.__class__(instance.answer, many=True)
-        serializer.bind('', self)
+        answers = instance.answer.all()
+        serializer = QuestionSerializer(answers, many=True)
+        
         return serializer.data
