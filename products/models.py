@@ -17,9 +17,9 @@ class Category(models.Model):
 
 class Product(models.Model):
     PRODUCT_STATUS_CHOICES = [
-        (1, 'Sale'),
-        (2, 'SoldOut'),
-        (3, 'StopSelling')
+        ('Sale', 'Sale'),
+        ('SoldOut', 'SoldOut'),
+        ('StopSelling', 'StopSelling')
     ]
 
     seller = models.ForeignKey(Seller, blank=False, null=False, on_delete=models.CASCADE, verbose_name="판매자")

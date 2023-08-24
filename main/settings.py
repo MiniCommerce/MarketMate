@@ -42,15 +42,20 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_auth',
 
+    'corsheaders',
+
     'main',
     'users',
     'reviews',
     'carts',
     'products',
+    'purchases',
     'questions',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -59,6 +64,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'main.urls'
 
