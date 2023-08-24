@@ -28,7 +28,7 @@ class ReviewList(APIView):
 
         if buyer and product:
             request_data = request.data.copy()
-            request_data['user'] = buyer.pk
+            request_data['buyer'] = buyer.pk
             request_data['product'] = product.pk
             serializer = ReviewSerializer(data=request_data)
 
@@ -44,17 +44,17 @@ class ReviewDetail(APIView):
 
     #  상품 후기 수정
     def patch(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
+        buyer = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
 
         try:
             review = Review.objects.get(pk=request.data.get('review_id'))
         except Review.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        if user.pk != review.user_id:
+        if buyer.pk != review.buyer_id:
             return Response({'error': '이 리뷰를 수정할 수 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
         
-        elif user.pk == review.user_id:
+        elif buyer.pk == review.buyer_id:
             serializer = ReviewSerializer(review, data=request.data, partial=True)
 
             if serializer.is_valid():
@@ -68,14 +68,14 @@ class ReviewDetail(APIView):
 
     #  상품 후기 삭제
     def delete(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
+        buyer = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
 
         try:
             review = Review.objects.get(pk=request.data.get('review_id'))
         except Review.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        if user.pk != review.user_id:
+        if buyer.pk != review.buyer_id:
             return Response({'error': '이 리뷰를 삭제할 수 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
 
         review.delete()
