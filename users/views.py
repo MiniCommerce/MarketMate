@@ -5,7 +5,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
 
 from .serializers import BuyerSerializer, SellerSerializer, LoginSerializer, ChangePasswordSerializer, BuyerUpdateSerializer, SellerUpdateSerializer, DeleteUserSerializer
-from users.permissions import IsAuthenticated
+from users.permissions import IsAuthenticated, IsBuyer, IsSeller
 
 
 # 판매자 회원가입
@@ -85,7 +85,7 @@ class ChangePasswordView(APIView):
 # 구매자 회원정보 수정
 class BuyerUpdateView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsBuyer]
 
     def get(self, request):
         buyer = request.user.buyer
@@ -107,7 +107,7 @@ class BuyerUpdateView(APIView):
 # 판매자 회원정보수정
 class SellerUpdateView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSeller]
 
     def get(self, request):
         seller = request.user.seller
