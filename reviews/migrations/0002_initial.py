@@ -10,13 +10,13 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('users', '0001_initial'),
-        ('carts', '0002_initial'),
+        ('reviews', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='cart',
+            model_name='review',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='users.buyer', verbose_name='구매자'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='users.buyer', verbose_name='리뷰작성자'),
         ),
     ]

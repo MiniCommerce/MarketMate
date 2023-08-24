@@ -10,6 +10,7 @@ django-rest-auth==0.9.5
 djangorestframework==3.14.0
 idna==3.4
 oauthlib==3.2.2
+Pillow==10.0.0
 pycparser==2.21
 PyJWT==2.8.0
 python-decouple==3.8
@@ -21,4 +22,3 @@ six==1.16.0
 sqlparse==0.4.4
 tzdata==2023.3
 urllib3==2.0.4
-
