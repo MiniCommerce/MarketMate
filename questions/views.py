@@ -4,12 +4,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated
 
 from users.models import Buyer, Seller, User
 from .models import Question
 from .serializers import QuestionSerializer
 from products.models import Product
+from users.permissions import IsAuthenticated
 
 # Create your views here.
 
@@ -25,6 +25,8 @@ class QuestionList(APIView):
 
 # 문의 작성
 class CreateQuestion(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         product = Product.objects.get(pk=request.data.get('product_id'))
         buyer = Buyer.objects.filter(pk=Token.objects.get(key=request.auth).user_id).first()
@@ -39,7 +41,7 @@ class CreateQuestion(APIView):
             # 판매자 답변
             elif "parent" in request_data:
                 if Question.objects.get(id=request_data["parent"]) is not None:
-                    return Response({'error': '답변을 작성하실 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': '답변에는 답변을 작성하실 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 if Question.objects.filter(parent_id=request_data["parent"]).exists():
                     return Response({'error': '이미 답변된 문의 입니다.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,6 +62,8 @@ class CreateQuestion(APIView):
 
 
 class QuestionDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     # 문의, 답변 수정
     def patch(self, request):
         user = get_object_or_404(User, pk=Token.objects.get(key=request.auth).user_id)
