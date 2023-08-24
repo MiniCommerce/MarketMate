@@ -40,7 +40,7 @@ class CreateQuestion(APIView):
                 request_data['user'] = buyer.pk
             # 판매자 답변
             elif "parent" in request_data:
-                if Question.objects.get(id=request_data["parent"]) is not None:
+                if Question.objects.get(id=request_data["parent"]).parent is not None:
                     return Response({'error': '답변에는 답변을 작성하실 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 if Question.objects.filter(parent_id=request_data["parent"]).exists():
