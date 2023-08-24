@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from users.models import Seller
+from users.models import Seller, Buyer
 
 
 class IsAuthenticated(BasePermission):
@@ -24,4 +24,19 @@ class IsSeller(BasePermission):
             seller = Seller.objects.get(pk=user_id)
             return True
         except Seller.DoesNotExist:
+            return False
+
+
+class IsBuyer(BasePermission):
+    '''
+    Buyer만 API요청 받기
+    '''
+
+    def has_permission(self, request, view):
+        user_id = request.user.id
+
+        try:
+            seller = Buyer.objects.get(pk=user_id)
+            return True
+        except Buyer.DoesNotExist:
             return False
