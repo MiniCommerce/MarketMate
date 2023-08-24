@@ -6,7 +6,7 @@ from rest_framework import status
 
 from .models import Product, Category
 from .serializers import ProductSerializer
-from users.permissions import IsAuthenticated
+from users.permissions import IsAuthenticated, IsSeller
 
 
 # 상품 조회
@@ -35,22 +35,21 @@ class ProductList(APIView):
 
 # 상품 등록
 class ProductCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSeller]
     
     def post(self, request):
         seller =  request.user.seller
 
-        if seller:
-            category_name = request.data.pop('category')
-            category, created = Category.objects.get_or_create(name=category_name)
-            request_data = request.data.copy()
-            request_data['seller'] = seller.pk
-            request_data['category'] = category.pk
-            serializer = ProductSerializer(data=request_data)
+        category_name = request.data.pop('category')
+        category, created = Category.objects.get_or_create(name=category_name)
+        request_data = request.data.copy()
+        request_data['seller'] = seller.pk
+        request_data['category'] = category.pk
+        serializer = ProductSerializer(data=request_data)
 
-            if serializer.is_valid():        
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid():        
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
@@ -66,7 +65,11 @@ class ProductDetail(APIView):
         
     # 상품 수정
     def patch(self, request):
-        seller = request.user.seller
+        try:
+            seller = request.user.seller
+        except:
+            return Response({'message': '상품 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            
         product_id = request.data.get('product_id')
         product = get_object_or_404(Product, pk=product_id)
 
