@@ -5,17 +5,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from users.models import Buyer
-from products.models import Product
 from .models import Cart
 from .serializers import CartSerializer
+from users.permissions import IsAuthenticated, IsBuyer
 
-
-# Create your views here.
 class CartView(APIView):
+    permission_classes = [IsAuthenticated, IsBuyer]
+
     def get(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
-        cart_list = Cart.objects.filter(user=user)
+        buyer = request.user.buyer
+        cart_list = Cart.objects.filter(user=buyer)
 
         if cart_list:
             serializer = CartSerializer(cart_list, many=True)
@@ -24,12 +23,13 @@ class CartView(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
-        product = Product.objects.get(pk=request.data.get('product_id'))
+        buyer = request.user.buyer
+        product_id = request.data.get('product_id')
+        product = get_object_or_404(product, product_id)
 
-        if user and product:
+        if product:
             request_data = request.data.copy()
-            request_data['user'] = user.pk
+            request_data['user'] = buyer.pk
             request_data['product'] = product.pk
             serializer = CartSerializer(data=request_data)
 
@@ -39,13 +39,14 @@ class CartView(APIView):
             
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({"status": status.HTTP_401_UNAUTHORIZED})
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
-        cart = Cart.objects.get(pk=request.data.get('cart_id'))
+        buyer = request.user.buyer
+        cart_id = request.data.get('cart_id')
+        cart = get_object_or_404(Cart, pk=cart_id)
 
-        if user.pk == cart.user_id:
+        if buyer.pk == cart.user_id:
             serializer = CartSerializer(cart, data=request.data, partial=True)
 
             if serializer.is_valid():
@@ -57,10 +58,11 @@ class CartView(APIView):
         return Response({"status": status.HTTP_401_UNAUTHORIZED})
     
     def delete(self, request):
-        user = get_object_or_404(Buyer, pk=Token.objects.get(key=request.auth).user_id)
-        cart = Cart.objects.get(pk=request.data.get('cart_id'))
+        buyer = request.user.buyer
+        cart_id = request.data.get('cart_id')
+        cart = get_object_or_404(Cart, pk=cart_id)
 
-        if user.pk == cart.user_id:
+        if buyer.pk == cart.user_id:
             cart.delete()
             return Response({"status": status.HTTP_200_OK})
 
