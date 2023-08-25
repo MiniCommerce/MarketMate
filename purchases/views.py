@@ -148,3 +148,61 @@ class PostpurchaseView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+def performRefund(token, imp_uid, amount):
+    url = f"https://api.iamport.kr/payments/cancel"
+    
+    headers = {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+    }
+    
+    data = {
+        'imp_uid': imp_uid,
+        'amount': amount
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response_data = response.json()
+        
+        if response_data['code'] == 0:
+            return 'success'
+        else:
+            return 'failed'
+    except Exception as ex:
+        return 'failed'
+
+
+# 환불
+class RefundView(APIView):
+    permission_classes = [IsAuthenticated, IsBuyer]
+
+    def post(self, request):
+        purchase = get_object_or_404(Purchase, merchant_uid=request.data.get('merchant_uid'))
+
+        if purchase.status != 'refunded':
+            token = getToken()
+
+            # 환불 로직 추가
+            refund_result = performRefund(token, purchase.merchant_uid, purchase.price)
+            if refund_result == 'success':
+                # 환불 처리 성공 시 업데이트
+                purchase.status = 'refunded'
+                purchase.save()
+
+                # 주문 및 상품 업데이트 로직 추가
+                order = purchase.order
+                order.status = 'refunded'
+                order.save()
+
+                product = order.product
+                product.amount += 1
+                product.save()
+
+                return Response({'message': 'Refund successful'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Refund failed'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'Already refunded'}, status=status.HTTP_400_BAD_REQUEST)
