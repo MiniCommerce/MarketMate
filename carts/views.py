@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
+from products.models import Product
 from .models import Cart
 from .serializers import CartSerializer
 from users.permissions import IsAuthenticated, IsBuyer
@@ -18,19 +19,21 @@ class CartView(APIView):
 
         if cart_list:
             serializer = CartSerializer(cart_list, many=True)
+
+            serializer_data = serializer.data.copy()
+            for i in range(len(serializer.data)):
+                serializer_data[i]['price'] = Product.objects.get(pk=serializer_data[i].get('product')).price
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         buyer = request.user.buyer
-        product_id = request.data.get('product_id')
-        product = get_object_or_404(product, product_id)
+        product = get_object_or_404(Product, pk=request.data.get("product"))
 
         if product:
             request_data = request.data.copy()
             request_data['user'] = buyer.pk
-            request_data['product'] = product.pk
             serializer = CartSerializer(data=request_data)
 
             if serializer.is_valid():

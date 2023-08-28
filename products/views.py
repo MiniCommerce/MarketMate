@@ -57,7 +57,7 @@ class ProductCreateView(APIView):
 class ProductDetail(APIView):
     # 상품 상세 정보
     def get(self, request):
-        product_id = request.data.get('product_id')
+        product_id = request.GET.get('product_id')
         product = get_object_or_404(Product, pk=product_id)
         serializer = ProductSerializer(product)
 
