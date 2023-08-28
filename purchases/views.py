@@ -186,7 +186,7 @@ class RefundView(APIView):
             token = getToken()
 
             # 환불 로직 추가
-            refund_result = performRefund(token, purchase.merchant_uid, purchase.price)
+            refund_result = performRefund(token, purchase.imp_uid, purchase.price)
             if refund_result == 'success':
                 # 환불 처리 성공 시 업데이트
                 purchase.status = 'refunded'
