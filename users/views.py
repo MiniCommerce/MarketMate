@@ -56,7 +56,7 @@ class LogoutView(APIView):
         except Token.DoesNotExist:
             return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
         
-        return Response(status=status.HTTP_200_OK)
+        return Response({'status':200},status=status.HTTP_200_OK)
 
 
 # 비밀번호 변경
