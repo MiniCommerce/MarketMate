@@ -103,7 +103,7 @@ DATABASES = {
         'USER': config('DB_USER', default=None),
         'PASSWORD': config('DB_PASSWORD', default=None),
         'HOST': config('DB_HOST', default=None),
-        'PORT': config('DB_HOST', cast=int)
+        'PORT': config('DB_PORT', cast=int)
     }
 }
 
