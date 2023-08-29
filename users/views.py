@@ -56,7 +56,7 @@ class LogoutView(APIView):
         except Token.DoesNotExist:
             return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
         
-        return Response(status=status.HTTP_200_OK)
+        return Response({'status':200},status=status.HTTP_200_OK)
 
 
 # 비밀번호 변경
@@ -75,7 +75,7 @@ class ChangePasswordView(APIView):
             if user.check_password(current_password):
                 user.set_password(new_password)
                 user.save()
-                return Response({'message': '비밀번호 변경 성공'})
+                return Response({'message': '비밀번호 변경 성공','status':200 },status=status.HTTP_200_OK)
             else:
                 return Response({'error': '현재 암호가 틀립니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -128,7 +128,6 @@ class SellerUpdateView(APIView):
 
 # 회원탈퇴
 class DeleteUserView(APIView):
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -143,7 +142,7 @@ class DeleteUserView(APIView):
                     Token.objects.get(user_id=user.id).delete()
                     user.is_active = False
                     user.save()
-                    return Response(status=status.HTTP_200_OK)
+                    return Response({'status':200},status=status.HTTP_200_OK)
                 except Token.DoesNotExist:
                     return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
         
