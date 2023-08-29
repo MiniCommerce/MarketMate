@@ -59,10 +59,6 @@ class OrderView(APIView):
         serializer_data['buyer_name'] = order.buyer.nickname
         serializer_data['buyer_email'] = order.buyer.email
         serializer_data['buyer_phone'] = order.buyer.number
-        serializer_data['address'] = order.address
-        serializer_data['order_name'] = order.order_name
-        serializer_data['status'] = order.status
-        serializer_data['price'] = order.price
 
         return Response(serializer_data, status=status.HTTP_200_OK)
 
@@ -70,21 +66,25 @@ class OrderView(APIView):
         request_data = request.data.copy()
 
         buyer = request.user.buyer
-        product = get_object_or_404(Product, pk=request_data.get('product'))
+        product = get_object_or_404(Product, pk=request_data.pop('product_id'))
+        quantity = int(request_data.pop("quantity"))
 
         request_data['buyer'] = buyer.pk
+        request_data['order_name'] = f"{product.product_name} {quantity}건"
         request_data['status'] = 'ready'
         request_data['address'] = buyer.shipping_address
-        request_data['order_name'] = f"{product.product_name} {request_data.get('quantity')}건"
-        request_data['price'] = product.price * int(request.data.get("quantity"))
+        request_data['price'] = product.price * quantity
         
-        order_serializer = OrderSerializer(data={'buyer': request_data.pop('buyer'), 'status': request_data.pop('status'), 'address': request_data.pop('address'), 'order_name': request_data.pop('order_name'), 'price': request_data.pop('price')})
+        order_serializer = OrderSerializer(data=request_data)
         if order_serializer.is_valid():
             order_serializer.save()
 
-            request_data['order'] = order_serializer.data.get('id')
+            order_data = {}
+            order_data['order'] = order_serializer.data.get('id')
+            order_data['product'] = product.pk
+            order_data['quantity'] = quantity
 
-            item_serializer = ItemSerializer(data=request_data)
+            item_serializer = ItemSerializer(data=order_data)
             if item_serializer.is_valid():
                 item_serializer.save()
                 return Response({'order': order_serializer.data, 'item': item_serializer.data}, status=status.HTTP_200_OK)
@@ -99,21 +99,31 @@ class CartOrderView(APIView):
 
     def post(self, request):
         request_data = request.data.copy()
-        
+
         buyer = request.user.buyer
         
         carts = []
         for pair in request_data:
             carts.append(Cart.objects.get(pk=pair.get('cart_id')))
 
+        if len(carts) > 1:
+            order_name = f'{carts[0].product.product_name} 외 {len(carts) - 1}건'
+        else:
+            order_name = f'{carts[0].product.product_name} 1건'
 
-        order_name = f'{carts[0].product.product_name} 외 {len(carts) - 1}건'
 
         price = 0
         for cart in carts:
             price += ((cart.product.price) * (cart.amount))
 
-        order_serializer = OrderSerializer(data={'buyer': buyer.pk, 'order_name': order_name, 'price': price})
+        order_data = {}
+        order_data['buyer'] = buyer.pk
+        order_data['order_name'] = order_name
+        order_data['status'] = 'ready'
+        order_data['address'] = buyer.shipping_address
+        order_data['price'] = price
+
+        order_serializer = OrderSerializer(data=order_data)
         if order_serializer.is_valid():
             order_serializer.save()
 
@@ -130,7 +140,7 @@ class CartOrderView(APIView):
 
             return Response({'order': order_serializer.data, 'item': item_serializer.data}, status=status.HTTP_200_OK)
 
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(order_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PrepurchaseView(APIView):
@@ -171,7 +181,7 @@ class PrepurchaseView(APIView):
 class PostpurchaseView(APIView):
     permission_classes = [IsAuthenticated, IsBuyer]
 
-    def put(self, request):
+    def patch(self, request):
         request_data = request.data.copy()
 
         purchase = get_object_or_404(Purchase, merchant_uid=request_data.pop("merchant_uid"))

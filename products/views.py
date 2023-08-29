@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
+from users.models import Seller
 from .models import Product, Category
 from .serializers import ProductSerializer
 from users.permissions import IsAuthenticated, IsSeller
@@ -28,10 +29,14 @@ class ProductList(APIView):
 
         if products:
             serializer = ProductSerializer(products, many=True)
+            
+            for i in range(len(serializer.data)):
+                serializer.data[i]['seller'] = Product.objects.get(pk=serializer.data[i].get("id")).seller.store_name
+
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
-    
+
 
 # 상품 등록
 class ProductCreateView(APIView):
@@ -57,11 +62,13 @@ class ProductCreateView(APIView):
 class ProductDetail(APIView):
     # 상품 상세 정보
     def get(self, request):
-        product_id = request.GET.get('product_id')
-        product = get_object_or_404(Product, pk=product_id)
+        product = get_object_or_404(Product, pk=request.GET.get('product_id'))
         serializer = ProductSerializer(product)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer_data = serializer.data.copy()
+        serializer_data['seller'] = Product.objects.get(pk=serializer.data.get("id")).seller.store_name
+
+        return Response(serializer_data, status=status.HTTP_200_OK)
         
     # 상품 수정
     def patch(self, request):
