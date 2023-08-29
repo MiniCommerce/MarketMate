@@ -75,7 +75,7 @@ class ChangePasswordView(APIView):
             if user.check_password(current_password):
                 user.set_password(new_password)
                 user.save()
-                return Response({'message': '비밀번호 변경 성공'})
+                return Response({'message': '비밀번호 변경 성공','status':200 },status=status.HTTP_200_OK)
             else:
                 return Response({'error': '현재 암호가 틀립니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
