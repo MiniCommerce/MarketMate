@@ -142,7 +142,7 @@ class DeleteUserView(APIView):
                     Token.objects.get(user_id=user.id).delete()
                     user.is_active = False
                     user.save()
-                    return Response(status=status.HTTP_200_OK)
+                    return Response({'status':200},status=status.HTTP_200_OK)
                 except Token.DoesNotExist:
                     return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
         
