@@ -128,6 +128,7 @@ class SellerUpdateView(APIView):
 
 # 회원탈퇴
 class DeleteUserView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
