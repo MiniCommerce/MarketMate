@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
+from products.models import Product
+from users.models import Buyer
 from .models import Cart
 from .serializers import CartSerializer
 from users.permissions import IsAuthenticated, IsBuyer
@@ -18,28 +20,40 @@ class CartView(APIView):
 
         if cart_list:
             serializer = CartSerializer(cart_list, many=True)
+
+            serializer_data = serializer.data.copy()
+            for i in range(len(serializer.data)):
+                serializer_data[i]['price'] = Product.objects.get(pk=serializer_data[i].get('product')).price
+                serializer_data[i]['product'] = Product.objects.get(pk=serializer_data[i].get('product')).product_name
+                serializer_data[i]['user'] = Buyer.objects.get(pk=serializer_data[i]['user']).nickname
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         buyer = request.user.buyer
-        product_id = request.data.get('product_id')
-        product = get_object_or_404(product, product_id)
+        product = get_object_or_404(Product, pk=request.data.get("product_id"))
+        carts = Cart.objects.filter(user=buyer.pk)
 
-        if product:
-            request_data = request.data.copy()
-            request_data['user'] = buyer.pk
-            request_data['product'] = product.pk
-            serializer = CartSerializer(data=request_data)
+        if carts:
+            for cart in carts:
+                if product.pk == cart.product.pk:
+                    cart.amount += int(request.data.get('amount'))
+                    cart.save()
+                    return Response({"message": "HTTP_200_OK"}, status=status.HTTP_200_OK)
+                else:
+                    continue
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        request_data = request.data.copy()
+        request_data['product'] = product.pk
+        request_data['user'] = buyer.pk
+
+        serializer = CartSerializer(data=request_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def patch(self, request):
         buyer = request.user.buyer
