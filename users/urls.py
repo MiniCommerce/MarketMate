@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BuyerRegistrationView, SellerRegistrationView, LoginView, LogoutView, ChangePasswordView, BuyerUpdateView, SellerUpdateView, DeleteUserView
+from .views import BuyerRegistrationView, SellerRegistrationView, LoginView, LogoutView, ChangePasswordView, BuyerUpdateView, SellerUpdateView, DeleteUserView, DiscriminationView
 
 app_name = 'users'
 
@@ -20,4 +20,6 @@ urlpatterns = [
     path('seller/update/', SellerUpdateView.as_view(), name='sellerupdate'),
     # 회원탈퇴
     path('delete/', DeleteUserView.as_view(), name='delete_user'),
+    # 구매자, 판매자 식별
+    path('discrimination/', DiscriminationView.as_view(), name='discriminationuser')
 ]
