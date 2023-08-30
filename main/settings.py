@@ -30,7 +30,7 @@ SECRET_KEY = config('DJANGO_SECRET_KEY', default=None)
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    ".ap-northeast-2.compute.amazonaws.com"
+    "*.ap-northeast-2.compute.amazonaws.com"
 ]
 
 
