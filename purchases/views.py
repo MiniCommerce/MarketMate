@@ -273,16 +273,19 @@ class BuyerOrdersView(APIView):
         orders_with_images = []
         for order_data in serializer.data:
             order_id = order_data['id']
-            product_id = order_data['product']
-
+            
             try:
-                product = Product.objects.get(pk=product_id)
-                product_images = product.images.all()  
-                product_images_urls = [image.image.url for image in product_images]
+                items = Item.objects.filter(order_id=order_id)
+                product_images_urls = []
+                for item in items:
+                    product = item.product
+                    if hasattr(product, 'images'):
+                        product_images = product.images.all()
+                        product_images_urls.extend([image.image.url for image in product_images])
 
                 order_data['product_images'] = product_images_urls
                 orders_with_images.append(order_data)
-            except Product.DoesNotExist:
+            except Item.DoesNotExist:
                 pass
 
         return Response(orders_with_images, status=status.HTTP_200_OK)
