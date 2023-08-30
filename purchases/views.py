@@ -206,3 +206,30 @@ class RefundView(APIView):
                 return Response({'message': 'Refund failed'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'message': 'Already refunded'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+# 주문 조회
+class BuyerOrdersView(APIView):
+    permission_classes = [IsAuthenticated, IsBuyer]
+
+    def get(self, request):
+        buyer = request.user.buyer
+        orders = Order.objects.filter(buyer=buyer)
+        serializer = OrderSerializer(orders, many=True)
+
+        orders_with_images = []
+        for order_data in serializer.data:
+            order_id = order_data['id']
+            product_id = order_data['product']
+
+            try:
+                product = Product.objects.get(pk=product_id)
+                product_images = product.images.all()  
+                product_images_urls = [image.image.url for image in product_images]
+
+                order_data['product_images'] = product_images_urls
+                orders_with_images.append(order_data)
+            except Product.DoesNotExist:
+                pass
+
+        return Response(orders_with_images, status=status.HTTP_200_OK)
