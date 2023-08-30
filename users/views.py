@@ -129,6 +129,7 @@ class SellerUpdateView(APIView):
 # 회원탈퇴
 class DeleteUserView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request):
         user = request.user
@@ -147,3 +148,22 @@ class DeleteUserView(APIView):
                     return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
         
         return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+# 판매자, 구매자 판별 
+class DiscriminationView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    
+    def get(self, request):
+        user = request.user
+
+        if user.is_authenticated:
+            if hasattr(user, 'seller'):
+                return Response({'message': '판매자'})
+            elif hasattr(user, 'buyer'):
+                return Response({'message': '구매자'})
+            else:
+                return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({'message': '로그인되지 않았습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
