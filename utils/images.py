@@ -40,7 +40,7 @@ class S3Client:
             
             return full_path
         except Exception as e:
-            print(e)
+            print(f"error:{e}")
             return ''
 
 s3 = S3Client()
