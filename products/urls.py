@@ -8,4 +8,5 @@ urlpatterns = [
     path("register/", views.ProductCreateView.as_view(), name="상품 등록"),
     path("detail/", views.ProductDetail.as_view(), name="상품 상세정보 조회"),
     path("update/", views.ProductDetail.as_view(), name="상품 정보 수정"),
+    path("mysale/", views.Saleproduct.as_view(), name="내 판매상품 조회"),
 ]

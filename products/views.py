@@ -90,3 +90,22 @@ class ProductDetail(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# 내 등록 상품 조회
+class Saleproduct(APIView):
+    permission_classes = [IsAuthenticated, IsSeller]
+    
+    def get(self, request):
+        seller = request.user.seller
+        products = Product.objects.filter(seller=seller)
+        
+        if products:
+            serializer = ProductSerializer(products, many=True)
+            
+            for i in range(len(serializer.data)):
+                serializer.data[i]['seller'] = seller.store_name
+                
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    
+        return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
