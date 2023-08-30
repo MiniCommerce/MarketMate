@@ -74,6 +74,7 @@ MIDDLEWARE = [
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
+    'http://marketmate-fe.s3-website.ap-northeast-2.amazonaws.com',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
