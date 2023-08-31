@@ -13,8 +13,8 @@ from utils.images import s3
 # 상품 조회
 class ProductList(APIView):
     def get(self, request):
-        category_id = request.data.get('category')
-        search_text = request.data.get('search_text')
+        category_id = request.GET.get('category')
+        search_text = request.GET.get('search_text')
         products = None
 
         # 카테고리 검색
@@ -56,8 +56,8 @@ class ProductCreateView(APIView):
         request_data['category'] = category.pk
         request_data['thumbnail_image'] = thumbnail_image_path
         serializer = ProductSerializer(data=request_data)
-
-        if serializer.is_valid():        
+        
+        if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
