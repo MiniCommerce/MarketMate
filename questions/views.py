@@ -9,15 +9,15 @@ from users.models import Buyer, Seller, User
 from .models import Question
 from .serializers import QuestionSerializer
 from products.models import Product
-from users.permissions import IsAuthenticated
+from users.permissions import IsAuthenticated, IsBuyer
 
-# Create your views here.
 
 # 문의 리스트 
 class QuestionList(APIView):
     def get(self, request):
-        product = Product.objects.get(pk=request.data.get('product_id'))
-        questions = Question.objects.filter(product=product, parent=None)
+        product_id = request.GET.get('product_id')
+        product = get_object_or_404(Product, pk=product_id)
+        questions = Question.objects.filter(product=product)
         serializer = QuestionSerializer(questions, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -25,39 +25,23 @@ class QuestionList(APIView):
 
 # 문의 작성
 class CreateQuestion(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsBuyer]
 
     def post(self, request):
-        product = Product.objects.get(pk=request.data.get('product_id'))
-        buyer = Buyer.objects.filter(pk=Token.objects.get(key=request.auth).user_id).first()
-        seller = Seller.objects.filter(pk=Token.objects.get(key=request.auth).user_id).first()
+        product_id = request.data.pop('product_id')
+        product = get_object_or_404(Product, pk=product_id)
+        buyer = request.user.buyer
 
-        if product and (buyer or seller):
-            request_data = request.data.copy()
+        request_data = request.data.copy()
+        request_data['product'] = product.pk
+        request_data['user'] = buyer.pk
+        serializer = QuestionSerializer(data=request_data)
+        
+        if serializer.is_valid():                    
+            serializer.save()
+            print(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-            # 구매자 문의
-            if "parent" not in request_data:
-                request_data['user'] = buyer.pk
-            # 판매자 답변
-            elif "parent" in request_data:
-                if Question.objects.get(id=request_data["parent"]).parent is not None:
-                    return Response({'error': '답변에는 답변을 작성하실 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-                
-                if Question.objects.filter(parent_id=request_data["parent"]).exists():
-                    return Response({'error': '이미 답변된 문의 입니다.'}, status=status.HTTP_400_BAD_REQUEST)
-                
-                if product.seller_id == seller.pk:
-                    request_data['user'] = seller.pk 
-                else:
-                    return Response({'error': '상품 판매자만 답변할 수 있습니다.'}, status=status.HTTP_403_FORBIDDEN)
-                
-            request_data['product'] = product.pk
-            serializer = QuestionSerializer(data=request_data)
-
-            if serializer.is_valid():                    
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -66,40 +50,40 @@ class QuestionDetail(APIView):
 
     # 문의, 답변 수정
     def patch(self, request):
-        user = get_object_or_404(User, pk=Token.objects.get(key=request.auth).user_id)
+        user_id = request.user.id
+        question_id = request.data.get('question_id')
+        question = get_object_or_404(Question, pk=question_id)
+        buyer = Buyer.objects.filter(pk=user_id)
 
-        try:
-            question = Question.objects.get(pk=request.data.get('question_id'))
-        except Question.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        if user.pk != question.user_id:
-            return Response({'error': '수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
-        
-        elif user.pk == question.user_id:
-            serializer = QuestionSerializer(question, data=request.data, partial=True)
+        if buyer:
+            if user_id != question.user.id:
+                return Response({'error': '수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+        else:
+            if question.product.seller.id != user_id:
+                return Response({'error': '수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+        print(request.data)
+        serializer = QuestionSerializer(question, data=request.data, partial=True)
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
     # 문의, 답변 삭제
     def delete(self, request):
-        user = get_object_or_404(User, pk=Token.objects.get(key=request.auth).user_id)
+        user_id = request.user.id
+        question_id = request.data.get('question_id')
+        question = get_object_or_404(Question, pk=question_id)
+        buyer = Buyer.objects.filter(pk=user_id)
 
-        try:
-            question = Question.objects.get(pk=request.data.get('question_id'))
-        except Question.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        if buyer:
+            if user_id != question.user.id:
+                return Response({'error': '수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response({'error': '수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
         
-        if user.pk != question.user_id:
-            return Response({'error': '삭제 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
-
         question.delete()
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': '성공'}, status=status.HTTP_200_OK)
