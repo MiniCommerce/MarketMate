@@ -30,7 +30,9 @@ SECRET_KEY = config('DJANGO_SECRET_KEY', default=None)
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "*.ap-northeast-2.compute.amazonaws.com"
+    ".ap-northeast-2.compute.amazonaws.com",
+    "127.0.0.1",
+    "localhost",
 ]
 
 
@@ -72,8 +74,6 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = [
-    'http://localhost:5500',
-    'http://127.0.0.1:5500',
     'http://marketmate-fe.s3-website.ap-northeast-2.amazonaws.com',
 ]
 
