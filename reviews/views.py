@@ -12,12 +12,20 @@ from users.permissions import IsAuthenticated, IsBuyer
 
 # 상품 후기 리스트
 class ReviewList(APIView):
-    def get(self, request):
-        product = Product.objects.get(pk=request.data.get('product_id'))
-        reviews = Review.objects.filter(product=product)
-        serializer = ReviewSerializer(reviews, many=True)
+    def get(self, request, pk):
+        try:
+            product = Product.objects.get(pk=pk)
+            reviews = Review.objects.filter(product=product)
+            serialized_reviews = []
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            for review in reviews:
+                serialized_review = ReviewSerializer(review).data
+                serialized_review["buyer_name"] = review.buyer.nickname
+                serialized_reviews.append(serialized_review)
+
+            return Response(serialized_reviews, status=status.HTTP_200_OK)
+        except Product.DoesNotExist:
+            return Response("Product not found.", status=status.HTTP_404_NOT_FOUND)
     
 
 # 상품 후기 작성
