@@ -25,7 +25,7 @@ class ProductList(APIView):
             products = Product.objects.filter(product_name__icontains=search_text)
         # 전체 리스트
         else:
-            products = Product.objects.exclude(status='StopSelling')
+            products = Product.objects.exclude(product_status='StopSelling')
 
         if products:
             serializer = ProductSerializer(products, many=True)
@@ -99,6 +99,22 @@ class ProductDetail(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({'message': '상품이 성공적으로 수정되었습니다.', 'data': serializer.data, 'status':200}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# 내 등록 상품 조회
+class Saleproduct(APIView):
+    permission_classes = [IsAuthenticated, IsSeller]
+    
+    def get(self, request):
+        seller = request.user.seller
+        products = Product.objects.filter(seller=seller)
+        
+        if products:
+            serializer = ProductSerializer(products, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    
+        return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)

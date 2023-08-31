@@ -204,16 +204,14 @@ class PostpurchaseView(APIView):
 
 
 def performRefund(token, imp_uid, amount):
-    url = f"https://api.iamport.kr/payments/cancel"
+    url = "https://api.iamport.kr/payments/cancel"
     
-    headers = {
-        'Authorization': token,
-        'Content-Type': 'application/json'
-    }
+    headers = {'Authorization': token, 'Content-Type': 'application/json', 'charset': 'UTF-8', 'Accept': '*/*'}
     
     data = {
         'imp_uid': imp_uid,
-        'amount': amount
+        'amount': amount,
+        'reason': '테스트 결제 취소'
     }
     
     try:
@@ -234,25 +232,24 @@ class RefundView(APIView):
 
     def post(self, request):
         purchase = get_object_or_404(Purchase, merchant_uid=request.data.get('merchant_uid'))
-
+        token = getToken()
+        
         if purchase.status != 'refunded':
-            token = getToken()
 
-            # 환불 로직 추가
             refund_result = performRefund(token, purchase.imp_uid, purchase.price)
             if refund_result == 'success':
-                # 환불 처리 성공 시 업데이트
                 purchase.status = 'refunded'
                 purchase.save()
 
-                # 주문 및 상품 업데이트 로직 추가
                 order = purchase.order
                 order.status = 'refunded'
                 order.save()
 
-                product = order.product
-                product.amount += 1
-                product.save()
+                items = order.item_set.all()
+                for item in items:
+                    product = item.product
+                    product.amount += 1
+                    product.save()
 
                 return Response({'message': 'Refund successful'}, status=status.HTTP_200_OK)
             else:
@@ -273,16 +270,24 @@ class BuyerOrdersView(APIView):
         orders_with_images = []
         for order_data in serializer.data:
             order_id = order_data['id']
-            product_id = order_data['product']
-
+            
             try:
-                product = Product.objects.get(pk=product_id)
-                product_images = product.images.all()  
-                product_images_urls = [image.image.url for image in product_images]
+                items = Item.objects.filter(order_id=order_id)
+                product_images_urls = []
+                for item in items:
+                    product = item.product
+                    if hasattr(product, 'images'):
+                        product_images = product.images.all()
+                        product_images_urls.extend([image.image.url for image in product_images])
 
+                purchase = Purchase.objects.filter(order_id=order_id).first()  
+                purchase_serializer = PurchaseSerializer(purchase) if purchase else None
+                
                 order_data['product_images'] = product_images_urls
+                order_data['purchase'] = purchase_serializer.data if purchase_serializer else None
+                
                 orders_with_images.append(order_data)
-            except Product.DoesNotExist:
+            except Item.DoesNotExist:
                 pass
 
         return Response(orders_with_images, status=status.HTTP_200_OK)
