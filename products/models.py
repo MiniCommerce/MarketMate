@@ -30,8 +30,7 @@ class Product(models.Model):
     desc = models.TextField()
     score = models.FloatField(default=0, verbose_name="평점")
     thumbnail_image = models.ImageField(upload_to=image_path, blank=True, null=True, verbose_name="썸네일")
-    status = models.CharField(default='Sale', choices=PRODUCT_STATUS_CHOICES, max_length=30, verbose_name="상태")
-    order_status = models.CharField(max_length=30, verbose_name="주문 상태", blank=True, null=True)
+    product_status = models.CharField(default='Sale', choices=PRODUCT_STATUS_CHOICES, max_length=30, verbose_name="상태")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="등록일")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="수정일")
 
