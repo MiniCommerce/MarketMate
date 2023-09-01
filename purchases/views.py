@@ -273,9 +273,11 @@ class BuyerOrdersView(APIView):
             
             try:
                 items = Item.objects.filter(order_id=order_id)
+                product_images = []  
+                
                 for item in items:
                     product = item.product
-                    product_images = product.thumbnail_image
+                    product_images.append(product.thumbnail_image) 
 
                 purchase = Purchase.objects.filter(order_id=order_id).first()  
                 purchase_serializer = PurchaseSerializer(purchase) if purchase else None
