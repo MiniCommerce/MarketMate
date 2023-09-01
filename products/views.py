@@ -73,7 +73,7 @@ class ProductDetail(APIView):
         serializer = ProductSerializer(product)
 
         serializer_data = serializer.data.copy()
-        serializer_data['seller'] = Product.objects.get(pk=serializer.data.get("id")).seller.store_name
+        serializer_data['store_name'] = product.seller.store_name
 
         return Response(serializer_data, status=status.HTTP_200_OK)
         
