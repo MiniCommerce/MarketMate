@@ -273,17 +273,14 @@ class BuyerOrdersView(APIView):
             
             try:
                 items = Item.objects.filter(order_id=order_id)
-                product_images_urls = []
                 for item in items:
                     product = item.product
-                    if hasattr(product, 'images'):
-                        product_images = product.images.all()
-                        product_images_urls.extend([image.image.url for image in product_images])
+                    product_images = product.thumbnail_image
 
                 purchase = Purchase.objects.filter(order_id=order_id).first()  
                 purchase_serializer = PurchaseSerializer(purchase) if purchase else None
                 
-                order_data['product_images'] = product_images_urls
+                order_data['product_images'] = product_images
                 order_data['purchase'] = purchase_serializer.data if purchase_serializer else None
                 
                 orders_with_images.append(order_data)
