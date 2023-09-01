@@ -33,7 +33,7 @@ class ProductList(APIView):
             
             for product in products:
                 review_scores = product.review_set.values_list('score', flat=True)
-                avg_score = sum(review_scores) / len(review_scores) if review_scores else 0
+                avg_score = round(sum(review_scores) / len(review_scores),1) if review_scores else 0
                 
                 product_data = ProductSerializer(product).data
                 product_data['seller'] = product.seller.store_name
@@ -80,7 +80,7 @@ class ProductDetail(APIView):
 
         # 해당 상품에 연결된 리뷰의 점수들을 가져와서 평균 계산
         review_scores = product.review_set.values_list('score', flat=True)
-        avg_score = sum(review_scores) / len(review_scores) if review_scores else 0
+        avg_score = round(sum(review_scores) / len(review_scores),1) if review_scores else 0
 
         serializer = ProductSerializer(product)
         serializer_data = serializer.data.copy()
