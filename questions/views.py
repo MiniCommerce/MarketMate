@@ -4,12 +4,28 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from purchases.models import Item, Order
 
 from users.models import Buyer, Seller, User
 from .models import Question
 from .serializers import QuestionSerializer
 from products.models import Product
 from users.permissions import IsAuthenticated, IsBuyer
+
+
+def check_order(buyer, product):
+    orders = Order.objects.filter(buyer=buyer)
+        
+    if not(orders):
+        return False
+        
+    for order in orders:
+        items = Item.objects.filter(order_id=order.pk)
+        for item in items:
+            if item.product == product:
+                return True
+    
+    return False
 
 
 # 문의 리스트 
@@ -31,7 +47,10 @@ class CreateQuestion(APIView):
         product_id = request.data.pop('product_id')
         product = get_object_or_404(Product, pk=product_id)
         buyer = request.user.buyer
-
+        
+        if not(check_order(buyer, product)):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            
         request_data = request.data.copy()
         request_data['product'] = product.pk
         request_data['user'] = buyer.pk
@@ -39,7 +58,6 @@ class CreateQuestion(APIView):
         
         if serializer.is_valid():                    
             serializer.save()
-            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -53,6 +71,7 @@ class QuestionDetail(APIView):
         user_id = request.user.id
         question_id = request.data.get('question_id')
         question = get_object_or_404(Question, pk=question_id)
+        
         buyer = Buyer.objects.filter(pk=user_id)
 
         if buyer:
@@ -61,7 +80,7 @@ class QuestionDetail(APIView):
         else:
             if question.product.seller.id != user_id:
                 return Response({'error': '수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
-        print(request.data)
+        
         serializer = QuestionSerializer(question, data=request.data, partial=True)
 
         if serializer.is_valid():
