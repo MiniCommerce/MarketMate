@@ -29,12 +29,18 @@ class ProductList(APIView):
             products = Product.objects.exclude(product_status='StopSelling')
 
         if products:
-            serializer = ProductSerializer(products, many=True)
+            serialized_products = []
             
-            for i in range(len(serializer.data)):
-                serializer.data[i]['seller'] = Product.objects.get(pk=serializer.data[i].get("id")).seller.store_name
+            for product in products:
+                review_scores = product.review_set.values_list('score', flat=True)
+                avg_score = sum(review_scores) / len(review_scores) if review_scores else 0
+                
+                product_data = ProductSerializer(product).data
+                product_data['seller'] = product.seller.store_name
+                product_data['score'] = avg_score
+                serialized_products.append(product_data)
 
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serialized_products, status=status.HTTP_200_OK)
         
         return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -69,11 +75,17 @@ class ProductCreateView(APIView):
 class ProductDetail(APIView):
     # 상품 상세 정보
     def get(self, request):
-        product = get_object_or_404(Product, pk=request.GET.get('product_id'))
-        serializer = ProductSerializer(product)
+        product_id = request.GET.get('product_id')
+        product = get_object_or_404(Product, pk=product_id)
 
+        # 해당 상품에 연결된 리뷰의 점수들을 가져와서 평균 계산
+        review_scores = product.review_set.values_list('score', flat=True)
+        avg_score = sum(review_scores) / len(review_scores) if review_scores else 0
+
+        serializer = ProductSerializer(product)
         serializer_data = serializer.data.copy()
-        serializer_data['seller'] = Product.objects.get(pk=serializer.data.get("id")).seller.store_name
+        serializer_data['seller'] = product.seller.store_name
+        serializer_data['score'] = avg_score
 
         return Response(serializer_data, status=status.HTTP_200_OK)
         
