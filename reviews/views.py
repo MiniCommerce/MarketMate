@@ -51,7 +51,7 @@ class CreateReview(APIView):
         buyer = request.user.buyer
 
         if not(check_order(buyer, product)):
-            return Response({'message':'상품 구매자만 후기를 작성할 수 있습니다.'},status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'message':'상품 구매자만 후기를 작성할 수 있습니다.','status':401},status=status.HTTP_401_UNAUTHORIZED)
 
         if buyer and product:
             request_data = request.data.copy()
