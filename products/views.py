@@ -8,13 +8,13 @@ from users.models import Seller
 from .models import Product, Category
 from .serializers import ProductSerializer
 from users.permissions import IsAuthenticated, IsSeller
-
+from utils.images import s3
 
 # 상품 조회
 class ProductList(APIView):
     def get(self, request):
-        category_id = request.data.get('category')
-        search_text = request.data.get('search_text')
+        category_id = request.GET.get('category')
+        search_text = request.GET.get('search_text')
         products = None
 
         # 카테고리 검색
@@ -25,7 +25,7 @@ class ProductList(APIView):
             products = Product.objects.filter(product_name__icontains=search_text)
         # 전체 리스트
         else:
-            products = Product.objects.exclude(status='StopSelling')
+            products = Product.objects.exclude(product_status='StopSelling')
 
         if products:
             serializer = ProductSerializer(products, many=True)
@@ -44,15 +44,20 @@ class ProductCreateView(APIView):
     
     def post(self, request):
         seller =  request.user.seller
-
+        # 카테고리
         category_name = request.data.pop('category')
         category, created = Category.objects.get_or_create(name=category_name)
+        # 썸네일 이미지
+        thumbnail_image = request.data.get('thumbnail_image')
+        request.data.pop('thumbnail_image')
+        thumbnail_image_path = s3.upload(thumbnail_image)
         request_data = request.data.copy()
         request_data['seller'] = seller.pk
         request_data['category'] = category.pk
+        request_data['thumbnail_image'] = thumbnail_image_path
         serializer = ProductSerializer(data=request_data)
-
-        if serializer.is_valid():        
+        
+        if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
@@ -83,10 +88,33 @@ class ProductDetail(APIView):
         if seller.pk != product.seller_id:
             return Response({'message': '상품 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
         
+        thumbnail_image = request.data.get('thumbnail_image')
+
+        if thumbnail_image:
+            request.data.pop('thumbnail_image')
+            thumbnail_image_path = s3.upload(thumbnail_image)
+            request.data['thumbnail_image'] = thumbnail_image_path
+                
         serializer = ProductSerializer(product, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({'message': '상품이 성공적으로 수정되었습니다.', 'data': serializer.data, 'status':200}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# 내 등록 상품 조회
+class Saleproduct(APIView):
+    permission_classes = [IsAuthenticated, IsSeller]
+    
+    def get(self, request):
+        seller = request.user.seller
+        products = Product.objects.filter(seller=seller)
+        
+        if products:
+            serializer = ProductSerializer(products, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    
+        return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)

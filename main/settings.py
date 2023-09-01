@@ -75,6 +75,8 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = [
     'http://marketmate-fe.s3-website.ap-northeast-2.amazonaws.com',
+    'localhost',
+    '127.0.0.1'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -169,7 +171,3 @@ REST_FRAMEWORK = {
 
 # Auth user
 AUTH_USER_MODEL = 'users.User'
-
-# 이미지
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
