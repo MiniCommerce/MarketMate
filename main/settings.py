@@ -74,6 +74,10 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = [
     'http://marketmate-fe.s3-website.ap-northeast-2.amazonaws.com',
+    'http://marketmate.digital',
+    'http://www.marketmate.digital',
+    'https://marketmate.digital',
+    'https://www.marketmate.digital',
     'http://localhost',
     'http://127.0.0.1',
 ]
