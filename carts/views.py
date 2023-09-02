@@ -28,7 +28,7 @@ class CartView(APIView):
                 serializer_data[i]['user'] = Buyer.objects.get(pk=serializer_data[i]['user']).nickname
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error_code':status.HTTP_400_BAD_REQUEST,'error':'장바구니에 물품이 없습니다.'},status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         buyer = request.user.buyer
@@ -53,7 +53,7 @@ class CartView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+        return Response({'error_code':status.HTTP_406_NOT_ACCEPTABLE, 'error': serializer.errors }, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def patch(self, request):
         buyer = request.user.buyer
@@ -67,9 +67,9 @@ class CartView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error_code':status.HTTP_400_BAD_REQUEST ,'error':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({"status": status.HTTP_401_UNAUTHORIZED})
+        return Response({"error_code": status.HTTP_401_UNAUTHORIZED, 'error':'buyer와 cart의 소유자가 다릅니다.'}, status=status.HTTP_401_UNAUTHORIZED)
     
     def delete(self, request):
         buyer = request.user.buyer
@@ -80,4 +80,4 @@ class CartView(APIView):
             cart.delete()
             return Response({"status": status.HTTP_200_OK})
 
-        return Response({"status": status.HTTP_401_UNAUTHORIZED})
+        return Response({"error_code": status.HTTP_401_UNAUTHORIZED, 'error':'buyer와 cart의 소유자가 다릅니다.'},status=status.HTTP_401_UNAUTHORIZED)
