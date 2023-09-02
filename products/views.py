@@ -13,13 +13,14 @@ from utils.images import s3
 # 상품 조회
 class ProductList(APIView):
     def get(self, request):
-        category_id = request.GET.get('category')
+        category_name = request.GET.get('category')
         search_text = request.GET.get('search_text')
         products = None
 
         # 카테고리 검색
-        if category_id:
-            products = Product.objects.filter(category=category_id)
+        if category_name:
+            category = get_object_or_404(Category, name=category_name)
+            products = Product.objects.filter(category=category.pk)
         # 텍스트를 통한 검색
         elif search_text:
             products = Product.objects.filter(product_name__icontains=search_text)
@@ -45,7 +46,8 @@ class ProductCreateView(APIView):
     def post(self, request):
         seller =  request.user.seller
         # 카테고리
-        category_name = request.data.pop('category')
+        category_name = request.data.get('category')
+        request.data.pop('category')
         category, created = Category.objects.get_or_create(name=category_name)
         # 썸네일 이미지
         thumbnail_image = request.data.get('thumbnail_image')

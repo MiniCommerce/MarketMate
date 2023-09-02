@@ -41,7 +41,13 @@ class LoginSerializer(serializers.Serializer):
         if user and user.is_active:
             # 토큰 생성
             token, created = Token.objects.get_or_create(user=user)
-            return token
+            member = 'buyer' if hasattr(user, 'buyer') else 'seller'
+            data = {
+                'token': token,
+                'user_id': user.pk,
+                'member': member
+            }
+            return data
         
         raise serializers.ValidationError("유효하지 않은 로그인입니다.")
 
