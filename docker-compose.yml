@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  nginx:
+    image: marketmate-nginx
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: ./Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx.conf.d
+      - ./MarketMate:/marketmate
+    depends_on:
+      - marketmate
+    networks:
+      - marketmate-network
+
+  marketmate:
+    image: marketmate-core
+    container_name: marketmate
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: gunicorn main.wsgi:application --bind 0.0.0.0:8000
+    expose:
+      - "8000"
+    volumes:
+      - .:/marketmate
+    env_file:
+      - ./.env
+    networks:
+      - marketmate-network
+
+networks:
+  marketmate-network:
+    driver: bridge
