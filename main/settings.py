@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('DJANGO_SECRET_KEY', default=None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     ".ap-northeast-2.compute.amazonaws.com",
@@ -75,8 +75,8 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = [
     'http://marketmate-fe.s3-website.ap-northeast-2.amazonaws.com',
-    'localhost',
-    '127.0.0.1'
+    'http://localhost',
+    'http://127.0.0.1',
 ]
 
 CORS_ALLOW_CREDENTIALS = True

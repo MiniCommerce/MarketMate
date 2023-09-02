@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from .models import Review
+from purchases.models import Order, Item
 from .serializers import ReviewSerializer
 from products.models import Product
 from users.permissions import IsAuthenticated, IsBuyer
@@ -27,6 +28,19 @@ class ReviewList(APIView):
         except Product.DoesNotExist:
             return Response("Product not found.", status=status.HTTP_404_NOT_FOUND)
     
+def check_order(buyer, product):
+    orders = Order.objects.filter(buyer=buyer)
+
+    if not(orders):
+        return False
+
+    for order in orders:
+        items = Item.objects.filter(order_id=order.pk)
+        for item in items:
+            if item.product == product:
+                return True
+
+    return False
 
 # 상품 후기 작성
 class CreateReview(APIView):
@@ -35,6 +49,9 @@ class CreateReview(APIView):
     def post(self, request):
         product = Product.objects.get(pk=request.data.get('product_id'))
         buyer = request.user.buyer
+
+        if not(check_order(buyer, product)):
+            return Response({'message':'상품 구매자만 후기를 작성할 수 있습니다.','status':401},status=status.HTTP_401_UNAUTHORIZED)
 
         if buyer and product:
             request_data = request.data.copy()
@@ -47,6 +64,7 @@ class CreateReview(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 
 class ReviewDetail(APIView):

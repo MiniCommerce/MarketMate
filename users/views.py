@@ -38,8 +38,13 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():
-            token = serializer.validated_data
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
+            data = {
+                'token': serializer.validated_data['token'].key,
+                'user_id': serializer.validated_data['user_id'],
+                'member': serializer.validated_data['member']
+            }
+           
+            return Response(data, status=status.HTTP_200_OK)
         
         return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -160,9 +165,9 @@ class DiscriminationView(APIView):
 
         if user.is_authenticated:
             if hasattr(user, 'seller'):
-                return Response({'message': '판매자'})
+                return Response({'message': '판매자', 'user_id': user.id})
             elif hasattr(user, 'buyer'):
-                return Response({'message': '구매자'})
+                return Response({'message': '구매자', 'user_id': user.id})
             else:
                 return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
