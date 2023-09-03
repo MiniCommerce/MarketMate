@@ -26,7 +26,7 @@ class ReviewList(APIView):
 
             return Response(serialized_reviews, status=status.HTTP_200_OK)
         except Product.DoesNotExist:
-            return Response("Product not found.", status=status.HTTP_404_NOT_FOUND)
+            return Response({'error_code':status.HTTP_404_NOT_FOUND, 'error':'상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
     
 def check_order(buyer, product):
     orders = Order.objects.filter(buyer=buyer)
@@ -51,7 +51,7 @@ class CreateReview(APIView):
         buyer = request.user.buyer
 
         if not(check_order(buyer, product)):
-            return Response({'message':'상품 구매자만 후기를 작성할 수 있습니다.','status':401},status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error_code':status.HTTP_401_UNAUTHORIZED, 'error':'상품 구매자만 후기를 작성할 수 있습니다.'},status=status.HTTP_401_UNAUTHORIZED)
 
         if buyer and product:
             request_data = request.data.copy()
@@ -63,7 +63,7 @@ class CreateReview(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error_code':status.HTTP_400_BAD_REQUEST, 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
 
 
@@ -80,7 +80,7 @@ class ReviewDetail(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if buyer.pk != review.buyer_id:
-            return Response({'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error_code':status.HTTP_403_FORBIDDEN, 'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
         
         elif buyer.pk == review.buyer_id:
             serializer = ReviewSerializer(review, data=request.data, partial=True)
@@ -89,9 +89,9 @@ class ReviewDetail(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error_code':status.HTTP_400_BAD_REQUEST, 'error':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error_code':status.HTTP_401_UNAUTHORIZED, 'error':'리뷰 수정 권한이 없습니다.'},status=status.HTTP_401_UNAUTHORIZED)
         
 
     #  상품 후기 삭제
@@ -104,7 +104,7 @@ class ReviewDetail(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if buyer.pk != review.buyer_id:
-            return Response({'error': '리뷰 삭제 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error_code':status.HTTP_403_FORBIDDEN, 'error': '리뷰 삭제 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
 
         review.delete()
 
