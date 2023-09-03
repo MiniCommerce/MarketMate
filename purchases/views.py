@@ -91,7 +91,7 @@ class OrderView(APIView):
 
             return Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error_code':status.HTTP_400_BAD_REQUEST, 'error':order_serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
 
 class CartOrderView(APIView):
@@ -140,7 +140,7 @@ class CartOrderView(APIView):
 
             return Response({'order': order_serializer.data, 'item': item_serializer.data}, status=status.HTTP_200_OK)
 
-        return Response(order_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error_code':status.HTTP_400_BAD_REQUEST,'error':order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PrepurchaseView(APIView):
@@ -159,7 +159,7 @@ class PrepurchaseView(APIView):
         items = Item.objects.filter(order=order.pk)
         for item in items:
             if item.quantity > item.product.amount:
-                return Response({"message": "재고보다 주문량이 많습니다."})
+                return Response({"error_code": status.HTTP_400_BAD_REQUEST,"error": "재고보다 주문량이 많습니다."},status=status.HTTP_400_BAD_REQUEST)
 
         if buyer and (merchant_uid == request.data.get('merchant_uid')) and (order.price == price):
             request_data = request.data.copy()
@@ -173,9 +173,9 @@ class PrepurchaseView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error_code':status.HTTP_400_BAD_REQUEST, 'error':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error_code':status.HTTP_400_BAD_REQUEST, 'error':'결제 정보가 틀립니다.'},status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostpurchaseView(APIView):
@@ -200,7 +200,7 @@ class PostpurchaseView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error_code':status.HTTP_400_BAD_REQUEST, 'error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
 
 def performRefund(token, imp_uid, amount):
@@ -248,14 +248,14 @@ class RefundView(APIView):
                 items = order.item_set.all()
                 for item in items:
                     product = item.product
-                    product.amount += 1
+                    product.amount += item.quantity
                     product.save()
 
                 return Response({'message': 'Refund successful'}, status=status.HTTP_200_OK)
             else:
-                return Response({'message': 'Refund failed'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error_code':status.HTTP_400_BAD_REQUEST,'error': '환불에 실패했습니다.'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'message': 'Already refunded'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error_code':status.HTTP_400_BAD_REQUEST,'error': '이미 환불 된 구매건 입니다'}, status=status.HTTP_400_BAD_REQUEST)
         
 
 # 주문 조회
