@@ -11,6 +11,7 @@
     - 사용자는 구매자와 판매자로 구분되며, 회원 가입 시점에 정할 수 있습니다.
     - 각 회원 유형은 자신의 역할만 수행할 수 있으며, 회원 가입 이후에는 변경할 수 없습니다.
     - 회원 가입, 로그인, 로그아웃, 회원 정보 수정, 회원 탈퇴가 가능합니다.
+    - 로그인은 Django REST framework에서 제공하는 토큰 인증 기능을 활용하고 있습니다.
 - 상품 관련 기능
     - 모든 상품은 판매자와 구매자 모두 목록과 상세 보기 형식으로 조회할 수 있습니다.
     - 판매자의 경우 자신이 판매할 상품을 등록, 수정, 삭제할 수 있습니다.
@@ -34,9 +35,9 @@
 
 ### 1-3. 프로젝트 참여 인원 및 역할
 - 이광호: 팀장, 전체 기능 총괄, S3 이미지 처리
-- 성낙훈: 전체 기능 총괄, 인증, 인가, 결제 기능 개발
+- 성낙훈: 인증, 인가, 전체 기능 총괄, 결제 기능 개발
 - 김태은: 상품, 문의, 후기 기능 개발, 문서 작성
-- 전정헌: 장바구니, 결제 기능 개발, 문서 작성, AWS와 도커 배포
+- 전정헌: 장바구니, 결제 기능 개발, 문서 작성, CD, 배포
 
 ### 1-4. 프로젝트 수행 기간
 - 2023년 08월 17일 ~ 2023년 09월 04일(2주)
@@ -45,37 +46,37 @@
 ## 2. 기술 스택 및 배포 URL
 
 ### 2-1. 기술 스택
-<img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=Python&logoColor=white">
-<img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white">
-<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white">
-
-<img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=Django&logoColor=white">
-
-<img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=Git&logoColor=white">
-<img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=GitHub&logoColor=white">
-
-<img src="https://img.shields.io/badge/Amazon AWS-232F3E?style=for-the-badge&logo=Amazon AWS&logoColor=white">
-<img src="https://img.shields.io/badge/Amazon S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white">
-<img src="https://img.shields.io/badge/Amazon EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white">
-<img src="https://img.shields.io/badge/Amazon RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white">
-
 - 사용 언어
-    - Python 3.11.3
-    - HTML5, Vanilla JS
+
+    <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=Python&logoColor=white"><img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white">
+
 - 웹 프레임워크
-    - Django 4.2.3
-    - Django REST framework 3.14.0
-- 형상 관리 도구
-    - Git
-    - GitHub
-- 서비스 배포 환경
-    - S3
-    - EC2
-    - RDS
+
+    <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=Django&logoColor=white">
+
+- 형상 관리
+
+    <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=Git&logoColor=white"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=GitHub&logoColor=white">
+
+- 배포
+
+    <img src="https://img.shields.io/badge/Amazon AWS-232F3E?style=for-the-badge&logo=Amazon AWS&logoColor=white">
+    <img src="https://img.shields.io/badge/Amazon S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white">
+    <img src="https://img.shields.io/badge/Amazon EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white">
+    <img src="https://img.shields.io/badge/Amazon RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white">
+
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+    <img src="https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white">
 
 ### 2-2. 배포 URL
-- 프론트엔드: http://marketmate-fe.s3-website.ap-northeast-2.amazonaws.com/
-- 백엔드(API 서버): http://ec2-52-79-61-229.ap-northeast-2.compute.amazonaws.com
+- 프론트엔드: https://front.marketmate.digital/
+- 백엔드(API 서버): https://www.marketmate.digital/
+
+### 2-3. 테스트 계정
+```
+구매자 계정: buyer1@email.com / qwerty123!@#
+판매자 계정: seller1@email.com / qwerty123!@#
+```
 
 ## 3. 프로젝트 구조 및 아키텍처 구성도
 
