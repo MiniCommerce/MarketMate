@@ -29,7 +29,7 @@ SECRET_KEY = config('DJANGO_SECRET_KEY', default=None)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -70,8 +70,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = [
-    'localhost',
-    '127.0.0.1'
+    'http://localhost',
+    'http://127.0.0.1'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
