@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.validators import RegexValidator
 from django.utils import timezone
 
 # Create your models here.
@@ -31,13 +32,18 @@ class UserManager(BaseUserManager):
     # create_superuser
     def create_superuser(self, email, password, **extra_fields):
         return self._create_user(email, password, True, True, **extra_fields)
-    
-    
+
+number_regex = RegexValidator(
+    regex=r'[0-9]{2,}[-]?[0-9]{4,}[-]?[0-9]{4,}',
+    message="전화번호 형식은 {010-1234-1234, 01012341234}에 20자 이하로 이루어져야 합니다."
+)
+
+
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, max_length=255)
     name = models.CharField(max_length=50, null=True, blank=True)
-    number = models.CharField(max_length=20, null=True, blank=True)
+    number = models.CharField(validators=[number_regex], max_length=20, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

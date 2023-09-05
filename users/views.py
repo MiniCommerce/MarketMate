@@ -17,7 +17,11 @@ class BuyerRegistrationView(APIView):
             serializer.save()
             return Response({'message': 'Buyer registered successfully'}, status=status.HTTP_201_CREATED)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+                'error_code': status.HTTP_400_BAD_REQUEST,
+                'error': serializer.errors
+                },
+                status=status.HTTP_400_BAD_REQUEST)
 
 
 # 구매자 회원가입
@@ -29,7 +33,11 @@ class SellerRegistrationView(APIView):
             serializer.save()
             return Response({'message': 'Seller registered successfully'}, status=status.HTTP_201_CREATED)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+                'error_code': status.HTTP_400_BAD_REQUEST,
+                'error': serializer.errors
+                }, 
+                status=status.HTTP_400_BAD_REQUEST)
 
 
 # 로그인
@@ -46,7 +54,11 @@ class LoginView(APIView):
            
             return Response(data, status=status.HTTP_200_OK)
         
-        return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({
+                'error_code': status.HTTP_401_UNAUTHORIZED,
+                'error': '유효하지 않는 유저정보 입니다.'
+                },
+                status=status.HTTP_401_UNAUTHORIZED)
 
 
 # 로그아웃
@@ -59,7 +71,11 @@ class LogoutView(APIView):
         try:
             Token.objects.get(user_id=user.id).delete()
         except Token.DoesNotExist:
-            return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                'error_code': status.HTTP_404_NOT_FOUND,
+                'error': '유효하지 않는 유저정보 입니다.'
+                }, 
+                status=status.HTTP_404_NOT_FOUND)
         
         return Response({'status':200},status=status.HTTP_200_OK)
 
@@ -82,9 +98,17 @@ class ChangePasswordView(APIView):
                 user.save()
                 return Response({'message': '비밀번호 변경 성공','status':200 },status=status.HTTP_200_OK)
             else:
-                return Response({'error': '현재 암호가 틀립니다.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    'error_code': status.HTTP_400_BAD_REQUEST,
+                    'error': '현재 암호가 틀립니다.'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'error_code': status.HTTP_400_BAD_REQUEST,
+            'error': serializer.errors
+            }, 
+            status=status.HTTP_400_BAD_REQUEST)
     
 
 # 구매자 회원정보 수정
@@ -96,7 +120,7 @@ class BuyerUpdateView(APIView):
         buyer = request.user.buyer
         serializer = BuyerUpdateSerializer(buyer)
         
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request):
         buyer = request.user.buyer
@@ -104,9 +128,13 @@ class BuyerUpdateView(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'error_code': status.HTTP_400_BAD_REQUEST,
+            'error': serializer.errors
+            }, 
+            status=status.HTTP_400_BAD_REQUEST)
     
 
 # 판매자 회원정보수정
@@ -118,7 +146,7 @@ class SellerUpdateView(APIView):
         seller = request.user.seller
         serializer = SellerUpdateSerializer(seller)
 
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request):
         seller = request.user.seller
@@ -126,9 +154,13 @@ class SellerUpdateView(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'error_code': status.HTTP_400_BAD_REQUEST,
+            'error': serializer.errors
+            },
+            status=status.HTTP_400_BAD_REQUEST)
     
 
 # 회원탈퇴
@@ -148,11 +180,19 @@ class DeleteUserView(APIView):
                     Token.objects.get(user_id=user.id).delete()
                     user.is_active = False
                     user.save()
-                    return Response({'status':200},status=status.HTTP_200_OK)
+                    return Response({'status':200}, status=status.HTTP_200_OK)
                 except Token.DoesNotExist:
-                    return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({
+                        'error_code': status.HTTP_404_NOT_FOUND,
+                        'error': '유효하지 않는 유저정보 입니다.'
+                        },
+                        status=status.HTTP_404_NOT_FOUND)
         
-        return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({
+            'error_code': status.HTTP_401_UNAUTHORIZED,
+            'error': '유효하지 않는 유저정보 입니다.'
+            },
+            status=status.HTTP_401_UNAUTHORIZED)
 
 
 # 판매자, 구매자 판별 
@@ -169,6 +209,14 @@ class DiscriminationView(APIView):
             elif hasattr(user, 'buyer'):
                 return Response({'message': '구매자', 'user_id': user.id})
             else:
-                return Response({'message': '유효하지 않는 유저정보 입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({
+                        'error_code': status.HTTP_401_UNAUTHORIZED,
+                        'error': '유효하지 않는 유저정보 입니다.'
+                        },
+                        status=status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response({'message': '로그인되지 않았습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({
+                'error_code': status.HTTP_401_UNAUTHORIZED,
+                'error': '로그인되지 않았습니다.'
+                }, 
+                status=status.HTTP_401_UNAUTHORIZED)

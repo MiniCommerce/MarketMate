@@ -42,7 +42,11 @@ class ProductList(APIView):
 
             return Response(serialized_products, status=status.HTTP_200_OK)
         
-        return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({
+            'error_code': status.HTTP_404_NOT_FOUND,
+            'error': '등록된 상품이 없습니다.'
+            },
+            status=status.HTTP_404_NOT_FOUND)
 
 
 # 상품 등록
@@ -69,7 +73,11 @@ class ProductCreateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+        return Response({
+            'error_code': status.HTTP_400_BAD_REQUEST,
+            'error': serializer.errors
+            },
+            status=status.HTTP_400_BAD_REQUEST) 
 
 
 class ProductDetail(APIView):
@@ -94,13 +102,21 @@ class ProductDetail(APIView):
         try:
             seller = request.user.seller
         except:
-            return Response({'message': '상품 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'error_code': status.HTTP_401_UNAUTHORIZED,
+                'error': '상품 수정 권한이 없습니다.'
+                },
+                status=status.HTTP_401_UNAUTHORIZED)
             
         product_id = request.data.get('product_id')
         product = get_object_or_404(Product, pk=product_id)
 
         if seller.pk != product.seller_id:
-            return Response({'message': '상품 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'error_code': status.HTTP_401_UNAUTHORIZED,
+                'error': '상품 수정 권한이 없습니다.'
+                },
+                status=status.HTTP_401_UNAUTHORIZED)
         
         thumbnail_image = request.data.get('thumbnail_image')
 
@@ -115,7 +131,11 @@ class ProductDetail(APIView):
             serializer.save()
             return Response({'message': '상품이 성공적으로 수정되었습니다.', 'data': serializer.data, 'status':200}, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'error_code': status.HTTP_400_BAD_REQUEST,
+            'error': serializer.errors
+            },
+            status=status.HTTP_400_BAD_REQUEST)
     
 
 # 내 등록 상품 조회
@@ -131,4 +151,8 @@ class Saleproduct(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
     
-        return Response({'message': '등록된 상품이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({
+            'error_code': status.HTTP_404_NOT_FOUND,
+            'error': '등록된 상품이 없습니다.'
+            },
+            status=status.HTTP_404_NOT_FOUND)
